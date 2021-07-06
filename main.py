@@ -6,6 +6,16 @@ import wave
 from grpc_interceptor import ClientCallDetails, ClientInterceptor
 import uuid
 import pafy
+import time
+from pydub import AudioSegment
+from pydub.silence import split_on_silence
+import librosa
+import os
+import generate_chunks 
+
+
+
+
 
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
@@ -97,6 +107,8 @@ def get_srt_audio_bytes(stub):
     print(response.srt)
 
 
+
+
 def get_srt_audio_url(stub):
     language = "hi"
     url = "https://codmento.com/ekstep/test/changed.wav"
@@ -108,6 +120,56 @@ def get_srt_audio_url(stub):
     response = stub.recognize(request)
 
     print(response.srt)
+
+
+
+
+def read_given_audio(single_chunk):
+    with wave.open(single_chunk, 'rb') as f:
+        return f.readframes(f.getnframes())
+
+def convert(seconds):
+    try:
+        milli=str(seconds).split('.')[-1][:2]
+    except:
+        milli='00'
+    return time.strftime(f"%H:%M:%S,{milli}", time.gmtime(seconds))
+
+def get_text_from_wavfile_any_length(stub):
+
+    #inputs 
+    language = "hi"
+    audio_file_name='/home/test/Desktop/ASR/Hindi-Test-File.wav'
+    ###########
+    output_file_path,start_time_stamp,end_time_stamp=generate_chunks.split_and_store(audio_file_name)
+
+    for j in range(len(start_time_stamp)):
+        single_chunk=os.path.join(output_file_path ,f'chunk{j}.wav')
+
+        audio_bytes = read_given_audio(single_chunk)
+        lang = Language(value=language, name='Hindi')
+        config = RecognitionConfig(language=lang, audioFormat='MP3', transcriptionFormat='TRANSCRIPT',
+                                enableAutomaticPunctuation=1)
+        audio = RecognitionAudio(audioContent=audio_bytes)
+        request = SpeechRecognitionRequest(audio=audio, config=config)
+
+        # creds = grpc.metadata_call_credentials(
+        #     metadata_plugin=GrpcAuth('access_key')
+        # )
+        try:
+            response = stub.recognize(request)
+
+            print(convert(start_time_stamp[j] ),end='  :  ')
+            print(convert(end_time_stamp[j] ))
+
+            print(response.transcript)
+
+            print()
+        except grpc.RpcError as e:
+            e.details()
+            status_code = e.code()
+            print(status_code.name)
+            print(status_code.value)
 
 
 '''
@@ -134,3 +196,4 @@ if __name__ == '__main__':
         transcribe_audio_bytes(stub)
         get_srt_audio_url(stub)
         get_srt_audio_bytes(stub)
+        #get_text_from_wavfile_any_length(stub)

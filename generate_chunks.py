@@ -11,7 +11,7 @@ def split_and_store(input_audio_file):
     min_dur = 0.4      # minimum duration of a valid audio event in seconds
     max_dur = 8       # maximum duration of an event
     max_silence = 0.05   # maximum duration of tolerated continuous silence within an event
-    energy_threshold = 30 # threshold of detection
+    energy_threshold = 50 # threshold of detection
 
     output_path =("audio_chunks_" + \
         "_" + str(min_dur) + \
@@ -23,8 +23,8 @@ def split_and_store(input_audio_file):
 
     audio_regions = auditok.split(
         input_audio,
-        min_dur=0.5,     
-        max_dur=10,       
+        min_dur=min_dur,     
+        max_dur=max_dur,       
         max_silence=max_silence, 
         energy_threshold=energy_threshold
     )

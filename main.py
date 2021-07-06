@@ -11,11 +11,8 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 import librosa
 import os
+import subprocess
 import generate_chunks 
-
-
-
-
 
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
@@ -50,7 +47,7 @@ class MetadataClientInterceptor(ClientInterceptor):
 
 
 def read_audio():
-    with wave.open('/home/sujit27/projects/ASR/scrap/sample_audios/audio_chunks__0.5_8_0.1_50/region_506.520-516.516.wav', 'rb') as f:
+    with wave.open('/home/sujit27/projects/ASR/vakyansh-client-code/sample_audios/bulletin_hi_truncated_1.wav', 'rb') as f:
         return f.readframes(f.getnframes())
 
 
@@ -135,13 +132,12 @@ def convert(seconds):
         milli='00'
     return time.strftime(f"%H:%M:%S,{milli}", time.gmtime(seconds))
 
-def get_text_from_wavfile_any_length(stub):
+def get_text_from_wavfile_any_length(stub,audio_file):
 
     #inputs 
     language = "hi"
-    audio_file_name='/home/test/Desktop/ASR/Hindi-Test-File.wav'
     ###########
-    output_file_path,start_time_stamp,end_time_stamp=generate_chunks.split_and_store(audio_file_name)
+    output_file_path,start_time_stamp,end_time_stamp=generate_chunks.split_and_store(audio_file)
 
     for j in range(len(start_time_stamp)):
         single_chunk=os.path.join(output_file_path ,f'chunk{j}.wav')
@@ -172,28 +168,50 @@ def get_text_from_wavfile_any_length(stub):
             print(status_code.value)
 
 
-'''
-Function to download the best available audio from given youtube url
-Accepts url as parameter and returns filename
-'''
+
 def download_youtubeaudio(url):
-  try:
-    video = pafy.new(url) 
-    bestaudio = video.getbestaudio()
-    savedpath = bestaudio.filename
-    bestaudio.download(filepath=savedpath)
-    return(savedpath)
-  except:
-    pass
+    '''
+    Function to download the best available audio from given youtube url
+    Accepts url as parameter and returns filename
+    '''
+    try:
+        video = pafy.new(url) 
+        bestaudio = video.getbestaudio()
+        savedpath = bestaudio.filename
+        filepath = "saved_audio" + os.path.splitext(savedpath)[-1]
+        bestaudio.download(filepath=filepath)
+        return filepath
+    except:
+        pass
+
+def convert_to_wav(audio_file):
+    try:
+        if os.path.splitext(audio_file)[-1] == ".m4a":
+            subprocess.call(["python","m4atowav.py"]) 
+        elif os.path.splitext(audio_file)[-1] == ".mp3":
+            sound = AudioSegment.from_mp3(audio_file)
+            sound.export("saved_audio.wav", format="wav")
+        else:
+            sound = AudioSegment.from_file(audio_file)
+            sound.export("saved_audio.wav",format="wav")
+        os.remove(audio_file)
+    except:
+        pass
 
 if __name__ == '__main__':
+    url = "https://www.youtube.com/watch?v=UoFuE8IObKQ"
+    audio_file = download_youtubeaudio(url)
+    convert_to_wav(audio_file)
+    
+    audio_file='saved_audio.wav'
+
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
     with grpc.insecure_channel('52.12.126.83:50051') as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
         stub = SpeechRecognizerStub(channel)
-        transcribe_audio_url(stub)
-        transcribe_audio_bytes(stub)
-        get_srt_audio_url(stub)
-        get_srt_audio_bytes(stub)
-        #get_text_from_wavfile_any_length(stub)
+        # transcribe_audio_url(stub)
+        # transcribe_audio_bytes(stub)
+        # get_srt_audio_url(stub)
+        # get_srt_audio_bytes(stub)
+        get_text_from_wavfile_any_length(stub,audio_file)

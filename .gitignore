@@ -1,2 +1,6 @@
 sample_audios
 *.pyc
+*.wav
+*.m4a
+*.mp3
+*.webm

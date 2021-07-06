@@ -16,3 +16,4 @@ grpc-interceptor==0.13.0
 requests
 responses
 pytest-mock
+pafy

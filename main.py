@@ -4,6 +4,8 @@ from stub.speech_recognition_open_api_pb2 import Language, RecognitionConfig, Re
     SpeechRecognitionRequest
 import wave
 from grpc_interceptor import ClientCallDetails, ClientInterceptor
+import uuid
+import pafy
 
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
@@ -107,6 +109,20 @@ def get_srt_audio_url(stub):
 
     print(response.srt)
 
+
+'''
+Function to download the best available audio from given youtube url
+Accepts url as parameter and returns filename
+'''
+def download_youtubeaudio(url):
+  try:
+    video = pafy.new(url) 
+    bestaudio = video.getbestaudio()
+    savedpath = bestaudio.filename
+    bestaudio.download(filepath=savedpath)
+    return(savedpath)
+  except:
+    pass
 
 if __name__ == '__main__':
     key = "mysecrettoken"

@@ -184,48 +184,32 @@ def get_text_from_wavfile_any_length(stub,audio_file):
 #     except:
 #         pass
 
-def download_youtubeaudio(url):
-  try:
-    filepath = str(uuid.uuid4())+".wav"
-    ydl_opts = {
-      'format': 'bestaudio/best',
-      'outtmpl': filepath,
-      'postprocessors': [{
-          'key': 'FFmpegExtractAudio',
-          'preferredcodec': 'wav',
-          'preferredquality': '192',
-          
-      }]
-      }
-
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-      ydl.download([url])
-      subprocess.call(["ffmpeg -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(filepath, 16000, 1, 16, 'saved_audio_new.wav')], shell=True)
-
-      return(filepath)
-  except Exception as e:
-      print(e)
-
-def convert_to_wav(audio_file):
+def download_youtubeaudio(url, output_file='saved_audio_new.wav'):
     try:
-        if os.path.splitext(audio_file)[-1] == ".m4a":
-            subprocess.call(["python","m4atowav.py"]) 
-        elif os.path.splitext(audio_file)[-1] == ".mp3":
-            sound = AudioSegment.from_mp3(audio_file)
-            sound.export("saved_audio.wav", format="wav")
-        else:
-            sound = AudioSegment.from_file(audio_file)
-            sound.export("saved_audio.wav",format="wav")
-        os.remove(audio_file)
-    except:
-        pass
+        filepath = str(uuid.uuid4())+".wav"
+        ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': filepath,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+            
+        }]
+        }
+
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        subprocess.call(["ffmpeg -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(filepath, 16000, 1, 16, output_file)], shell=True)
+        os.remove(filepath)
+        return output_file
+    except Exception as e:
+        print(e)
+
 
 if __name__ == '__main__':
-    url = "https://www.youtube.com/watch?v=x_7YlGv9u1g&t=45s"
+    url = "https://www.youtube.com/watch?v=ziuMZ5dxFy0"
     audio_file = download_youtubeaudio(url)
-    # convert_to_wav(audio_file)
-    
-    audio_file='saved_audio_new.wav'
 
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]

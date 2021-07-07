@@ -12,6 +12,7 @@ from pydub.silence import split_on_silence
 import os
 import subprocess
 import generate_chunks 
+import youtube_dl
 
 
 class GrpcAuth(grpc.AuthMetadataPlugin):

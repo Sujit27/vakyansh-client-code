@@ -13,6 +13,11 @@ import os
 import subprocess
 import generate_chunks 
 import youtube_dl
+import requests
+import config
+import json
+import time
+from pathlib import Path
 
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
@@ -45,6 +50,42 @@ class MetadataClientInterceptor(ClientInterceptor):
 
         return method(request_or_iterator, new_details)
 
+def get_auth_token():
+    try:
+        res  = requests.post(config.LOGIN,json={"userName": config.USER,"password":config.PASS})
+        auth_token = res.json()['data']['token']
+        print(" Authentication successful \n")
+        return auth_token
+        
+    except Exception as e:
+        print('Error in authentication {}'.format(e),exc_info=True )
+        return None
+
+def get_model_id(token, src_lang_code,tgt_lang_code):
+    headers = {
+    'auth-token': token
+            }
+    response = requests.get(config.FETCH_MODEL, headers=headers)
+    response = json.loads(response.content)['data']
+    for entry in response:
+        if entry['target_language_code'] == tgt_lang_code and\
+            entry['source_language_code'] == src_lang_code and\
+            entry['status'] == 'ACTIVE' and\
+            'AAI4B' in entry['description']:
+#             print(json.dumps(entry, indent =2))
+            return entry['model_id']
+
+def get_translation( token, model_id, src_lang_code, tgt_lang_code, text):
+    # token = get_auth_token()
+    headers = {
+        'auth-token': token,
+        'Content-Type': 'application/json',
+    }
+    # model_id = get_model_id(token, src_lang_code, tgt_lang_code)
+    data = { "model_id":model_id, "source_language_code":src_lang_code, "target_language_code":tgt_lang_code, "src_list":[ { "src":text } ] }
+
+    response = requests.post(config.TRANSLATE_SEN, headers=headers, data=json.dumps(data))
+    return json.loads(response.content)['data'][0]['tgt']
 
 def read_audio():
     with wave.open('saved_audio_new.wav', 'rb') as f:
@@ -133,13 +174,15 @@ def convert(seconds):
     return time.strftime(f"%H:%M:%S,{milli}", time.gmtime(seconds))
 
 
-def get_text_from_wavfile_any_length(stub,audio_file):
+def get_text_from_wavfile_any_length(stub,audio_file, translation):
 
     #inputs 
     language = "hi"
     ###########
     output_file_path,start_time_stamp,end_time_stamp=generate_chunks.split_and_store(audio_file)
     result = ''
+    token = get_auth_token()
+    model_id = get_model_id(token, "hi", "en")
     for j in range(len(start_time_stamp)):
         single_chunk=os.path.join(output_file_path ,f'chunk{j}.wav')
 
@@ -165,7 +208,12 @@ def get_text_from_wavfile_any_length(stub,audio_file):
             result+=convert(end_time_stamp[j])
             result+='\n'
             print(response.transcript)
-            result+=response.transcript
+            if(translation == True):
+                translated_result = get_translation(token, model_id, "hi","en",response.transcript)
+                print(translated_result)
+                result+=translated_result
+            else:
+                result+=response.transcript
             print()
             result+='\n\n'
 
@@ -203,7 +251,8 @@ def download_youtubeaudio(url, output_file='saved_audio.wav'):
 
 
 if __name__ == '__main__':
-    url = "https://www.youtube.com/watch?v=ziuMZ5dxFy0"
+    url = "https://www.youtube.com/watch?v=RYu_sqDGj7c"
+    subprocess.call(['youtube-dl {}'.format(url)], shell=True)
     audio_file = download_youtubeaudio(url)
 
     key = "mysecrettoken"
@@ -215,4 +264,4 @@ if __name__ == '__main__':
         # transcribe_audio_bytes(stub)
         # get_srt_audio_url(stub)
         # get_srt_audio_bytes(stub)
-        get_text_from_wavfile_any_length(stub,audio_file)
+        get_text_from_wavfile_any_length(stub,audio_file, translation=True)

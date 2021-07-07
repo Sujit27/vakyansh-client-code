@@ -189,6 +189,7 @@ def download_youtubeaudio(url):
     filepath = str(uuid.uuid4())+".wav"
     ydl_opts = {
       'format': 'bestaudio/best',
+      'outtmpl': filepath,
       'postprocessors': [{
           'key': 'FFmpegExtractAudio',
           'preferredcodec': 'wav',

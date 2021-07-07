@@ -9,7 +9,6 @@ import pafy
 import time
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
-import librosa
 import os
 import subprocess
 import generate_chunks 
@@ -169,20 +168,39 @@ def get_text_from_wavfile_any_length(stub,audio_file):
 
 
 
+# def download_youtubeaudio(url):
+#     '''
+#     Function to download the best available audio from given youtube url
+#     Accepts url as parameter and returns filename
+#     '''
+#     try:
+#         video = pafy.new(url) 
+#         bestaudio = video.getbestaudio()
+#         savedpath = bestaudio.filename
+#         filepath = "saved_audio" + os.path.splitext(savedpath)[-1]
+#         bestaudio.download(filepath=filepath)
+#         return filepath
+#     except:
+#         pass
+
 def download_youtubeaudio(url):
-    '''
-    Function to download the best available audio from given youtube url
-    Accepts url as parameter and returns filename
-    '''
-    try:
-        video = pafy.new(url) 
-        bestaudio = video.getbestaudio()
-        savedpath = bestaudio.filename
-        filepath = "saved_audio" + os.path.splitext(savedpath)[-1]
-        bestaudio.download(filepath=filepath)
-        return filepath
-    except:
-        pass
+  try:
+    filepath = str(uuid.uuid4())+".wav"
+    ydl_opts = {
+      'format': 'bestaudio/best',
+      'postprocessors': [{
+          'key': 'FFmpegExtractAudio',
+          'preferredcodec': 'wav',
+          'preferredquality': '192',
+          
+      }]
+      }
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+      ydl.download([url])
+      return(filepath)
+  except Exception as e:
+      print(e)
 
 def convert_to_wav(audio_file):
     try:

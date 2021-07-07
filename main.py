@@ -132,13 +132,14 @@ def convert(seconds):
         milli='00'
     return time.strftime(f"%H:%M:%S,{milli}", time.gmtime(seconds))
 
+
 def get_text_from_wavfile_any_length(stub,audio_file):
 
     #inputs 
     language = "hi"
     ###########
     output_file_path,start_time_stamp,end_time_stamp=generate_chunks.split_and_store(audio_file)
-
+    result = ''
     for j in range(len(start_time_stamp)):
         single_chunk=os.path.join(output_file_path ,f'chunk{j}.wav')
 
@@ -154,37 +155,31 @@ def get_text_from_wavfile_any_length(stub,audio_file):
         # )
         try:
             response = stub.recognize(request)
-
-            print(convert(start_time_stamp[j] ),end='  :  ')
+            print(j+1)
+            result+=(str(j+1))
+            result+='\n'
+            print(convert(start_time_stamp[j]),end=' --> ')
+            result+=convert(start_time_stamp[j])
+            result+=' --> '
             print(convert(end_time_stamp[j] ))
-
+            result+=convert(end_time_stamp[j])
+            result+='\n'
             print(response.transcript)
-
+            result+=response.transcript
             print()
+            result+='\n\n'
+
         except grpc.RpcError as e:
             e.details()
             status_code = e.code()
             print(status_code.name)
             print(status_code.value)
+    
+    with open("subtitle.srt", "w") as text_file:
+        text_file.write(result)
 
 
-
-# def download_youtubeaudio(url):
-#     '''
-#     Function to download the best available audio from given youtube url
-#     Accepts url as parameter and returns filename
-#     '''
-#     try:
-#         video = pafy.new(url) 
-#         bestaudio = video.getbestaudio()
-#         savedpath = bestaudio.filename
-#         filepath = "saved_audio" + os.path.splitext(savedpath)[-1]
-#         bestaudio.download(filepath=filepath)
-#         return filepath
-#     except:
-#         pass
-
-def download_youtubeaudio(url, output_file='saved_audio_new.wav'):
+def download_youtubeaudio(url, output_file='saved_audio.wav'):
     try:
         filepath = str(uuid.uuid4())+".wav"
         ydl_opts = {
@@ -217,7 +212,7 @@ if __name__ == '__main__':
         channel = grpc.intercept_channel(channel, *interceptors)
         stub = SpeechRecognizerStub(channel)
         # transcribe_audio_url(stub)
-        transcribe_audio_bytes(stub)
+        # transcribe_audio_bytes(stub)
         # get_srt_audio_url(stub)
         # get_srt_audio_bytes(stub)
         get_text_from_wavfile_any_length(stub,audio_file)

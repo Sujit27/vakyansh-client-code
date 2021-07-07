@@ -47,7 +47,7 @@ class MetadataClientInterceptor(ClientInterceptor):
 
 
 def read_audio():
-    with wave.open('/home/sujit27/projects/ASR/vakyansh-client-code/sample_audios/bulletin_hi_truncated_1.wav', 'rb') as f:
+    with wave.open('saved_audio_new.wav', 'rb') as f:
         return f.readframes(f.getnframes())
 
 
@@ -200,6 +200,8 @@ def download_youtubeaudio(url):
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
       ydl.download([url])
+      subprocess.call(["ffmpeg -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(filepath, 16000, 1, 16, 'saved_audio_new.wav')], shell=True)
+
       return(filepath)
   except Exception as e:
       print(e)
@@ -219,11 +221,11 @@ def convert_to_wav(audio_file):
         pass
 
 if __name__ == '__main__':
-    url = "https://www.youtube.com/watch?v=UoFuE8IObKQ"
+    url = "https://www.youtube.com/watch?v=x_7YlGv9u1g&t=45s"
     audio_file = download_youtubeaudio(url)
-    convert_to_wav(audio_file)
+    # convert_to_wav(audio_file)
     
-    audio_file='saved_audio.wav'
+    audio_file='saved_audio_new.wav'
 
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
@@ -231,7 +233,7 @@ if __name__ == '__main__':
         channel = grpc.intercept_channel(channel, *interceptors)
         stub = SpeechRecognizerStub(channel)
         # transcribe_audio_url(stub)
-        # transcribe_audio_bytes(stub)
+        transcribe_audio_bytes(stub)
         # get_srt_audio_url(stub)
         # get_srt_audio_bytes(stub)
         get_text_from_wavfile_any_length(stub,audio_file)

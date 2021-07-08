@@ -18,6 +18,7 @@ import config
 import json
 import time
 from pathlib import Path
+from argparse import ArgumentParser
 
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
@@ -174,21 +175,19 @@ def convert(seconds):
     return time.strftime(f"%H:%M:%S,{milli}", time.gmtime(seconds))
 
 
-def get_text_from_wavfile_any_length(stub,audio_file, translation):
+def get_text_from_wavfile_any_length(stub,audio_file,lang, translation):
 
-    #inputs 
-    language = "hi"
-    ###########
+    langfull={"hi":"Hindi","mr":"Marathi","en":"English","gu":"Gujarati"}
+
     output_file_path,start_time_stamp,end_time_stamp=generate_chunks.split_and_store(audio_file)
     result = ''
     token = get_auth_token()
-    model_id = get_model_id(token, "hi", "en")
+    model_id = get_model_id(token, lang, "en")
     for j in range(len(start_time_stamp)):
         single_chunk=os.path.join(output_file_path ,f'chunk{j}.wav')
-
         audio_bytes = read_given_audio(single_chunk)
-        lang = Language(value=language, name='Hindi')
-        config = RecognitionConfig(language=lang, audioFormat='MP3', transcriptionFormat='TRANSCRIPT',
+        lang1 = Language(value=lang, name=langfull[lang])
+        config = RecognitionConfig(language=lang1, audioFormat='MP3', transcriptionFormat='TRANSCRIPT',
                                 enableAutomaticPunctuation=1)
         audio = RecognitionAudio(audioContent=audio_bytes)
         request = SpeechRecognitionRequest(audio=audio, config=config)
@@ -209,7 +208,7 @@ def get_text_from_wavfile_any_length(stub,audio_file, translation):
             result+='\n'
             print(response.transcript)
             if(translation == True):
-                translated_result = get_translation(token, model_id, "hi","en",response.transcript)
+                translated_result = get_translation(token, model_id, lang,"en",response.transcript)
                 print(translated_result)
                 result+=translated_result
             else:
@@ -251,7 +250,29 @@ def download_youtubeaudio(url, output_file='saved_audio.wav'):
 
 
 if __name__ == '__main__':
-    url = "https://www.youtube.com/watch?v=RYu_sqDGj7c"
+
+
+    parser = ArgumentParser()
+
+    parser.add_argument("--url",help="youtub video  url",type=str,required=True)
+    parser.add_argument("--lang_code",help="language of video",type=str,required=True,)
+    parser.add_argument("--trans_eng",help=" eng Translate ",type=str,)
+    args = parser.parse_args()
+
+    translate_eng=False
+    try:
+        trans_eng=(args.trans_eng).lower()
+        if (trans_eng)=='true' or  (trans_eng)=='yes':
+            translate_eng=True
+    except:
+        pass
+    print(translate_eng)
+
+
+
+
+
+    url =args.url 
     subprocess.call(['youtube-dl {}'.format(url)], shell=True)
     audio_file = download_youtubeaudio(url)
 
@@ -264,4 +285,4 @@ if __name__ == '__main__':
         # transcribe_audio_bytes(stub)
         # get_srt_audio_url(stub)
         # get_srt_audio_bytes(stub)
-        get_text_from_wavfile_any_length(stub,audio_file, translation=True)
+        get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_eng)

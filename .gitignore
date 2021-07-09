@@ -3,5 +3,7 @@ sample_audios
 *.wav
 *.m4a
 *.mp3
+*.mp4
+*.mkv
 *.webm
 *.srt

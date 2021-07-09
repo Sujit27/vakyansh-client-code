@@ -9,7 +9,7 @@ def split_and_store(input_audio_file):
     input_audio=input_audio_file
 
     min_dur = 0.4      # minimum duration of a valid audio event in seconds
-    max_dur = 8       # maximum duration of an event
+    max_dur = 20       # maximum duration of an event
     max_silence = 0.05   # maximum duration of tolerated continuous silence within an event
     energy_threshold = 50 # threshold of detection
 

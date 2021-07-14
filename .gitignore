@@ -1,4 +1,5 @@
 sample_audios
+chunks
 *.pyc
 *.wav
 *.m4a

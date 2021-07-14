@@ -23,3 +23,4 @@ requests
 responses
 pytest-mock
 pafy
+pysrt

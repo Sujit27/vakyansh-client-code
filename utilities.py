@@ -83,6 +83,8 @@ def merge_srt_files(srt_files,final_file="subtitle.srt"):
             with open(f, "rb") as infile:
                 output_file.write(infile.read())
 
+    return final_file
+
 def get_auth_token():
     try:
         res  = requests.post(config.LOGIN,json={"userName": config.USER,"password":config.PASS})
@@ -119,3 +121,13 @@ def get_translation( token, model_id, src_lang_code, tgt_lang_code, text):
 
     response = requests.post(config.TRANSLATE_SEN, headers=headers, data=json.dumps(data))
     return json.loads(response.content)['data'][0]['tgt']
+
+def translate_srt_file(srt_file,src_lang):
+    token = get_auth_token()
+    model_id = get_model_id(token, src_lang, "en")
+    subs = pysrt.open(srt_file)
+    for i in range(len(subs)):
+        print("Translating {} out of {}".format(i,len(subs)))
+        subs[i].text = get_translation(token, model_id, src_lang,"en",subs[i].text)
+
+    subs.save(srt_file, encoding='utf-8')

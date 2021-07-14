@@ -118,6 +118,7 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.makedirs(output_dir)
+    # chunk audio to 5min chunks
     chunk_files = chunk_audio(audio_file,output_dir)
     output_files = []
     for index,chunk in enumerate(chunk_files):
@@ -125,7 +126,12 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
         print("Generating subtitle output for chunk {}".format(index))
         gen_srt_limited_duration(stub,chunk,language, output_file_path)
         output_files.append(output_file_path)
-    merge_srt_files(output_files)
+    
+    final_srt_file = merge_srt_files(output_files)
+    if translate_to_en:
+        print("Translating subtitles to english")
+        translate_srt_file(final_srt_file,language)
+    shutil.rmtree(output_dir)
 
 if __name__ == '__main__':
     parser = ArgumentParser()

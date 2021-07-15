@@ -60,23 +60,12 @@ def chunk_audio(wav_file,output_dir):
     return chunk_paths
     
 def merge_srt_files(srt_files,final_file="subtitle.srt"):
-    subs = pysrt.open(srt_files[0])
-    hours = subs[-1].end.hours
-    minutes = subs[-1].end.minutes
-    seconds = subs[-1].end.seconds
-    milliseconds = subs[-1].end.milliseconds
+    
     for i in range(1,len(srt_files)):
         subs = pysrt.open(srt_files[i])
-        subs.shift(hours=hours)
-        subs.shift(minutes=minutes)
-        subs.shift(seconds=seconds)
-        subs.shift(milliseconds=milliseconds)
+        min_to_offset = 5 * i
+        subs.shift(minutes=min_to_offset)
         subs.save(srt_files[i], encoding='utf-8')
-
-        hours = subs[-1].end.hours
-        minutes = subs[-1].end.minutes
-        seconds = subs[-1].end.seconds
-        milliseconds = subs[-1].end.milliseconds
 
     with open(final_file,"wb") as output_file:
         for f in srt_files:

@@ -131,7 +131,7 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
     if translate_to_en:
         print("Translating subtitles to english")
         translate_srt_file(final_srt_file,language)
-    shutil.rmtree(output_dir)
+    # shutil.rmtree(output_dir)
 
 if __name__ == '__main__':
     parser = ArgumentParser()

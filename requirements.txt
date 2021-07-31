@@ -17,7 +17,6 @@ pydub==0.25.1
 librosa==0.8.1
 auditok==0.2.0
 pathlib==1.0.1
-
 youtube-dl
 requests
 responses

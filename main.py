@@ -10,7 +10,9 @@ import generate_chunks
 from utilities import *
 import config
 from argparse import ArgumentParser
+import re
 
+MAX_MESSAGE_LENGTH = 50 * 1024 * 1024
 
 class GrpcAuth(grpc.AuthMetadataPlugin):
     def __init__(self, key):
@@ -95,6 +97,8 @@ def get_text_from_wavfile_any_length(stub,audio_file,lang, translation):
         text_file.write(result)
 
 
+
+
 def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     '''
     Given an audio file, generates srt for the first 5 min
@@ -102,13 +106,17 @@ def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     audio_bytes = read_given_audio(audio_file)
     lang = Language(value=language, name=config.language_code_dict[language])
     recog_config = RecognitionConfig(language=lang, audioFormat='WAV', transcriptionFormat='SRT',
-                               enableInverseTextNormalization=False)
+                               enableInverseTextNormalization=True)
     audio = RecognitionAudio(audioContent=audio_bytes)
     request = SpeechRecognitionRequest(audio=audio, config=recog_config)
     response = stub.recognize(request)
+    srt_response=response.srt
+    store_str_into_file(srt_response,output_file_path)
 
-    with open(output_file_path, "w") as text_file:
-        text_file.write(response.srt)
+    # with open(output_file_path, "w") as text_file:
+    #     text_file.write(response.srt)
+    #     print(response.srt)
+        
 
 def gen_srt_full(stub,audio_file,language, translate_to_en):
     '''
@@ -148,14 +156,18 @@ if __name__ == '__main__':
             translate_to_en=True
     except:
         pass
-
+   
     url = args.url 
     subprocess.call(['youtube-dl {}'.format(url)], shell=True)
+    
     audio_file = download_youtubeaudio(url)
+
 
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
-    with grpc.insecure_channel('52.12.126.83:50051') as channel:
+    # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
+    grpc_channel = grpc.insecure_channel('localhost:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+    with grpc_channel as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
         stub = SpeechRecognizerStub(channel)
         # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)

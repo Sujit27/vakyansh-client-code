@@ -10,7 +10,7 @@ import generate_chunks
 from utilities import *
 import config
 from argparse import ArgumentParser
-import re
+
 
 MAX_MESSAGE_LENGTH = 50 * 1024 * 1024
 
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
     # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-    grpc_channel = grpc.insecure_channel('localhost:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+    grpc_channel = grpc.insecure_channel('54.213.245.181:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
     with grpc_channel as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
         stub = SpeechRecognizerStub(channel)

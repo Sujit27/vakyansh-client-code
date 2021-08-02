@@ -134,12 +134,14 @@ def gen_srt_full(stub,audio_file,language , translate_to_en = False):
         print("Generating subtitle output for chunk {}".format(index))
         result = gen_srt_limited_duration(stub,chunk,language, output_file_path)
         output_files.append(output_file_path)
-        return(result)
+        
     
     final_srt_file = merge_srt_files(output_files)
     if translate_to_en:
         print("Translating subtitles to english")
         translate_srt_file(final_srt_file,language)
+
+    return(result)
     # shutil.rmtree(output_dir)
 
 def flaskresponse(url, language):   

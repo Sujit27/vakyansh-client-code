@@ -118,7 +118,7 @@ def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     #     print(response.srt)
         
 
-def gen_srt_full(stub,audio_file,language = "bn", translate_to_en = False):
+def gen_srt_full(stub,audio_file,language , translate_to_en = False):
     '''
     Given an audio file, generates srt 
     '''
@@ -142,8 +142,9 @@ def gen_srt_full(stub,audio_file,language = "bn", translate_to_en = False):
         translate_srt_file(final_srt_file,language)
     # shutil.rmtree(output_dir)
 
-def flaskresponse(url):   
+def flaskresponse(url, language):   
         print("url ==== ", url)
+        print("language ==", language)
         audio_file = download_youtubeaudio(url)
         key = "mysecrettoken"
         interceptors = [MetadataClientInterceptor(key)]
@@ -153,7 +154,7 @@ def flaskresponse(url):
             channel = grpc.intercept_channel(channel, *interceptors)
             stub = SpeechRecognizerStub(channel)
             # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
-            result = gen_srt_full(stub,audio_file,"bn", False)
+            result = gen_srt_full(stub,audio_file,language, False)
             return(result)
 
 if __name__ == '__main__':

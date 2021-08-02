@@ -111,14 +111,14 @@ def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     request = SpeechRecognitionRequest(audio=audio, config=recog_config)
     response = stub.recognize(request)
     srt_response=response.srt
-    store_str_into_file(srt_response,output_file_path)
-
+    result = store_str_into_file(srt_response,output_file_path)
+    return(result)
     # with open(output_file_path, "w") as text_file:
     #     text_file.write(response.srt)
     #     print(response.srt)
         
 
-def gen_srt_full(stub,audio_file,language, translate_to_en):
+def gen_srt_full(stub,audio_file,language = "bn", translate_to_en = False):
     '''
     Given an audio file, generates srt 
     '''
@@ -132,14 +132,29 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
     for index,chunk in enumerate(chunk_files):
         output_file_path = os.path.join(output_dir,"subtitle{0}.srt".format(index))
         print("Generating subtitle output for chunk {}".format(index))
-        gen_srt_limited_duration(stub,chunk,language, output_file_path)
+        result = gen_srt_limited_duration(stub,chunk,language, output_file_path)
         output_files.append(output_file_path)
+        return(result)
     
     final_srt_file = merge_srt_files(output_files)
     if translate_to_en:
         print("Translating subtitles to english")
         translate_srt_file(final_srt_file,language)
     # shutil.rmtree(output_dir)
+
+def flaskresponse(url):   
+        print("url ==== ", url)
+        audio_file = download_youtubeaudio(url)
+        key = "mysecrettoken"
+        interceptors = [MetadataClientInterceptor(key)]
+        # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
+        grpc_channel = grpc.insecure_channel('54.213.245.181:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+        with grpc_channel as channel:
+            channel = grpc.intercept_channel(channel, *interceptors)
+            stub = SpeechRecognizerStub(channel)
+            # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
+            result = gen_srt_full(stub,audio_file,"bn", False)
+            return(result)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
@@ -158,7 +173,7 @@ if __name__ == '__main__':
         pass
    
     url = args.url 
-    subprocess.call(['youtube-dl {}'.format(url)], shell=True)
+    # subprocess.call(['youtube-dl {}'.format(url)], shell=True)
     
     audio_file = download_youtubeaudio(url)
 

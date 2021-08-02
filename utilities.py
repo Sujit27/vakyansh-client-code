@@ -159,3 +159,12 @@ def store_str_into_file(srt_response,output_file_path):
                 file_handler.write("{}\n".format(item))
             else:
                 file_handler.write("{}".format(item))
+    dict1={}
+    filename=output_file_path
+    with open(filename) as f:
+        lines = f.readlines()
+    one_line=''
+    for lin in lines:
+        one_line=one_line+''+lin
+    dict1['srt']=one_line
+    return(dict1)

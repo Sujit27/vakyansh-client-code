@@ -14,7 +14,6 @@ def generate_srt():
     url = body["url"]
     language = body["language"]
     result = main.flaskresponse(url,language)
-    print(result)
     if(result):
         return json.dumps(result)
     else:
@@ -25,6 +24,6 @@ def download_srt():
     body = request.get_json()
     filename = body["filename"]
     return send_file("/home/ec2-user/vakyansh-client-v2/vakyansh-client-code/subtitles/"+filename, as_attachment=True)
-    
+
 if __name__ == '__main__':
     app.run(host = "0.0.0.0", port=5001, debug=True)

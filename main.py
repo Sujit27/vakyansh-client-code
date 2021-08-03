@@ -142,9 +142,7 @@ def gen_srt_full(stub,audio_file,language , translate_to_en = False):
         print("Translating subtitles to english")
         translate_srt_file(final_srt_file,language)
 
-    return(result)
-    # shutil.rmtree(output_dir)
-    return final_srt_json
+    return(final_srt_json)
 
 def flaskresponse(url, language):   
         print("url ==== ", url)

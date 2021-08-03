@@ -141,6 +141,8 @@ def gen_srt_full(stub,audio_file,language , translate_to_en = False):
     if translate_to_en:
         print("Translating subtitles to english")
         translate_srt_file(final_srt_file,language)
+
+    return(result)
     # shutil.rmtree(output_dir)
     return final_srt_json
 

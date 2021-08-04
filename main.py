@@ -47,60 +47,6 @@ class MetadataClientInterceptor(ClientInterceptor):
         return method(request_or_iterator, new_details)
 
 
-def get_text_from_wavfile_any_length(stub,audio_file,lang, translation):
-    '''
-    Given an audio file, segments it and transcribes each segment
-    '''
-
-    output_file_path,start_time_stamp,end_time_stamp = generate_chunks.split_and_store(audio_file)
-    result = ''
-    token = get_auth_token()
-    model_id = get_model_id(token, lang, "en")
-    for j in range(len(start_time_stamp)):
-        single_chunk=os.path.join(output_file_path ,f'chunk{j}.wav')
-        audio_bytes = read_given_audio(single_chunk)
-        lang1 = Language(value=lang, name=config.language_code_dict[lang])
-        recog_config = RecognitionConfig(language=lang1, audioFormat='MP3', transcriptionFormat='TRANSCRIPT',
-                                enableAutomaticPunctuation=1)
-        audio = RecognitionAudio(audioContent=audio_bytes)
-        request = SpeechRecognitionRequest(audio=audio, config=recog_config)
-
-        # creds = grpc.metadata_call_credentials(
-        #     metadata_plugin=GrpcAuth('access_key')
-        # )
-        try:
-            response = stub.recognize(request)
-            print(j+1)
-            result+=(str(j+1))
-            result+='\n'
-            print(convert(start_time_stamp[j]),end=' --> ')
-            result+=convert(start_time_stamp[j])
-            result+=' --> '
-            print(convert(end_time_stamp[j] ))
-            result+=convert(end_time_stamp[j])
-            result+='\n'
-            print(response.transcript)
-            if(translation == True):
-                translated_result = get_translation(token, model_id, lang,"en",response.transcript)
-                print(translated_result)
-                result+=translated_result
-            else:
-                result+=response.transcript
-            print()
-            result+='\n\n'
-
-        except grpc.RpcError as e:
-            e.details()
-            status_code = e.code()
-            print(status_code.name)
-            print(status_code.value)
-    
-    with open("subtitle.srt", "w") as text_file:
-        text_file.write(result)
-
-
-
-
 def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     '''
     Given an audio file, generates srt for the first 5 min
@@ -110,7 +56,7 @@ def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     recog_config = RecognitionConfig(language=lang, audioFormat='WAV', transcriptionFormat='SRT',
                                enableInverseTextNormalization=False)
     # audio = RecognitionAudio(audioContent=audio_bytes)
-    request = SRTRequest(audio=audio_bytes, language="bn",user="ajitesh",filename="myfile")
+    request = SRTRequest(audio=audio_bytes,language=language,user="ajitesh",filename="myfile")
     print("request sent********")
     response = stub.recognize_srt(request)
     print("************************************")
@@ -145,6 +91,22 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
         print("Translating subtitles to english")
         translate_srt_file(final_srt_file,language)
     # shutil.rmtree(output_dir)
+
+
+def flaskresponse(url, language):   
+        print("url ==== ", url)
+        print("language ==", language)
+        audio_file = download_youtubeaudio(url)
+        key = "mysecrettoken"
+        interceptors = [MetadataClientInterceptor(key)]
+        # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
+        grpc_channel = grpc.insecure_channel('54.213.245.181:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+        with grpc_channel as channel:
+            channel = grpc.intercept_channel(channel, *interceptors)
+            stub = RecognizeStub(channel)
+            # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
+            result = gen_srt_full(stub,audio_file,language, False)
+            return(result)
 
 if __name__ == '__main__':
     parser = ArgumentParser()

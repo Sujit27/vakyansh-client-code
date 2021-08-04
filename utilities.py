@@ -68,12 +68,26 @@ def merge_srt_files(srt_files,final_file="subtitle.srt"):
         subs.shift(minutes=min_to_offset)
         subs.save(srt_files[i], encoding='utf-8')
 
-    with open(final_file,"wb") as output_file:
+    if os.path.exists('subtitles'):
+        pass
+    else:
+        os.makedirs('subtitles')
+
+    with open('subtitles/'+final_file,"wb") as output_file:
         for f in srt_files:
             with open(f, "rb") as infile:
                 output_file.write(infile.read())
+    outputdict={}
+    filename='subtitles/'+final_file
+    with open(filename) as f:
+        lines = f.readlines()
+    one_line=''
+    for lin in lines:
+        one_line=one_line+''+lin
+    outputdict['srt']=one_line
+    outputdict['filename']=final_file
+    return(filename,outputdict)
 
-    return final_file
 
 def get_auth_token():
     try:

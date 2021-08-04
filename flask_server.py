@@ -28,7 +28,7 @@ def generate_srt():
 @app.route('/get_srt/<filename>',methods=['GET'])
 def get_srt(filename):
     try:
-        return send_file("/home/ec2-user/vakyansh-client-v2/vakyansh-client-code/subtitles/"+str(filename), as_attachment=True)
+        return send_file("/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/subtitles/"+str(filename), as_attachment=True)
     except:
         return json.dumps({'get_srt':'false'})
 

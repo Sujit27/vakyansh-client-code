@@ -2,6 +2,8 @@ import grpc
 from stub.speech_recognition_open_api_pb2_grpc import SpeechRecognizerStub
 from stub.speech_recognition_open_api_pb2 import Language, RecognitionConfig, RecognitionAudio, \
     SpeechRecognitionRequest
+from grpc_stubs.audio_to_text_pb2_grpc import RecognizeStub 
+from grpc_stubs.audio_to_text_pb2 import SRTRequest   
 from grpc_interceptor import ClientCallDetails, ClientInterceptor
 import os
 import shutil
@@ -106,11 +108,14 @@ def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     audio_bytes = read_given_audio(audio_file)
     lang = Language(value=language, name=config.language_code_dict[language])
     recog_config = RecognitionConfig(language=lang, audioFormat='WAV', transcriptionFormat='SRT',
-                               enableInverseTextNormalization=True)
-    audio = RecognitionAudio(audioContent=audio_bytes)
-    request = SpeechRecognitionRequest(audio=audio, config=recog_config)
-    response = stub.recognize(request)
+                               enableInverseTextNormalization=False)
+    # audio = RecognitionAudio(audioContent=audio_bytes)
+    request = SRTRequest(audio=audio_bytes, language="bn",user="ajitesh",filename="myfile")
+    print("request sent********")
+    response = stub.recognize_srt(request)
+    print("************************************")
     srt_response=response.srt
+    print(srt_response)
     store_str_into_file(srt_response,output_file_path)
 
     # with open(output_file_path, "w") as text_file:
@@ -166,9 +171,10 @@ if __name__ == '__main__':
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
     # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-    grpc_channel = grpc.insecure_channel('54.213.245.181:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+    grpc_channel = grpc.insecure_channel('localhost:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
     with grpc_channel as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
-        stub = SpeechRecognizerStub(channel)
+        # stub = SpeechRecognizerStub(channel)
+        stub = RecognizeStub(channel)
         # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
         gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)

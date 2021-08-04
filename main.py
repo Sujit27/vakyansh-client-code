@@ -60,13 +60,10 @@ def gen_srt_limited_duration(stub,audio_file,language,output_file_path):
     print("request sent********")
     response = stub.recognize_srt(request)
     print("************************************")
-    srt_response=response.srt
-    print(srt_response)
-    result = store_str_into_file(srt_response,output_file_path)
-    return(result)
-    # with open(output_file_path, "w") as text_file:
-    #     text_file.write(response.srt)
-    #     print(response.srt)
+    #result = store_str_into_file(srt_response,output_file_path)
+    with open(output_file_path, "w") as text_file:
+        text_file.write(response.srt)
+        print(response.srt)
         
 
 def gen_srt_full(stub,audio_file,language, translate_to_en):

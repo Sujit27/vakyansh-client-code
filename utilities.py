@@ -137,39 +137,40 @@ def translate_srt_file(srt_file,src_lang):
     subs.save(srt_file, encoding='utf-8')
 
 
-def store_str_into_file(srt_response,output_file_path):
+# def store_str_into_file(srt_response,output_file_path):
 
-    list1=[]
-    list2=[]
-    list3=[]
-    list4=[]
-    list5=[]
+#     list1=[]
+#     list2=[]
+#     list3=[]
+#     list4=[]
+#     list5=[]
 
-    list1=(re.split('(\d+\s\d\d:\d\d:\d\d,[\d]+\s-->\s\d\d:\d\d:\d\d,[\d]+)', srt_response))
-    list2=list1[1: :2]
-    list3=[]
-    for li in list2:
-        list3.extend(li.split(' ',1))
+#     list1=(re.split('(\d+\s\d\d:\d\d:\d\d,[\d]+\s-->\s\d\d:\d\d:\d\d,[\d]+)', srt_response))
+#     list2=list1[1: :2]
+#     list3=[]
+#     for li in list2:
+#         list3.extend(li.split(' ',1))
         
-    list4=list1[2::2]
-    list4=[li.strip() for li in list4]
-    count=0
-    count1=0
-    list5=[]
-    while count<len(list4):
+#     list4=list1[2::2]
+#     list4=[li.strip() for li in list4]
+#     count=0
+#     count1=0
+#     list5=[]
+#     while count<len(list4):
         
-        list5.append(list3[count1])
-        count1=count1+1
-        list5.append(list3[count1])
-        count1=count1+1
-        list5.append(list4[count])
-        count=count+1
-        list5.append('\n')
+#         list5.append(list3[count1])
+#         count1=count1+1
+#         list5.append(list3[count1])
+#         count1=count1+1
+#         list5.append(list4[count])
+#         count=count+1
+#         list5.append('\n')
 
-
-    with open(output_file_path, 'w') as file_handler:
-        for item in list5:
-            if item!='\n':
-                file_handler.write("{}\n".format(item))
-            else:
-                file_handler.write("{}".format(item))
+#     print(list5)
+#     print()
+#     with open(output_file_path, 'w') as file_handler:
+#         for item in list5:
+#             if item!='\n':
+#                 file_handler.write("{}\n".format(item))
+#             else:
+#                 file_handler.write("{}".format(item))

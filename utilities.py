@@ -23,9 +23,10 @@ def convert(seconds):
         milli='00'
     return time.strftime(f"%H:%M:%S,{milli}", time.gmtime(seconds))
 
-def download_youtubeaudio(url, output_file='saved_audio.wav'):
+def download_youtubeaudio(url):
     try:
         filepath = str(uuid.uuid4())+".wav"
+        output_file=str(uuid.uuid1())+".wav"
         ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': filepath,

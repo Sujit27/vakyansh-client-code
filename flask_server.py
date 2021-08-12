@@ -30,6 +30,7 @@ def generate_srt():
 #     return send_file("/home/ec2-user/vakyansh-client-v2/vakyansh-client-code/subtitles/"+filename, as_attachment=True)
 
 @app.route('/get_srt/<filename>',methods=['GET'])
+@cross_origin()
 def get_srt(filename):
     try:
         return send_file("/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/subtitles/"+str(filename), as_attachment=True)

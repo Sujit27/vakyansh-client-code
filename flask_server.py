@@ -5,6 +5,8 @@ import main
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 @app.route('/generate_srt',methods=['POST'])
 def generate_srt():

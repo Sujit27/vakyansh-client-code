@@ -4,7 +4,7 @@ from flask import send_file
 import main
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"*": {"origins": "*"}})
 
 @app.route('/generate_srt',methods=['POST'])
 def generate_srt():

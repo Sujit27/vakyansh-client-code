@@ -4,8 +4,9 @@ from flask import send_file
 import main
 
 app = Flask(__name__)
-CORS(app, max_age=3600, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
+CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+#CORS(app, max_age=3600, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
 
 
 @app.route('/generate_srt',methods=['POST'])
@@ -16,7 +17,7 @@ def generate_srt():
     result = main.flaskresponse(url,language)
     if(result):
         tmp = json.dumps(result)
-        tmp.headers.add('Access-Control-Allow-Origin', 'https://ban-sc.idc.tarento.com')
+        #tmp.headers.add('Access-Control-Allow-Origin', 'https://ban-sc.idc.tarento.com')
         return tmp
     else:
         return json.dumps({'generate_srt':'false'})

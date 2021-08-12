@@ -15,8 +15,9 @@ def generate_srt():
     language = body["language"]
     result = main.flaskresponse(url,language)
     if(result):
-        result.headers.add('Access-Control-Allow-Origin', 'https://ban-sc.idc.tarento.com')
-        return json.dumps(result)
+        tmp = json.dumps(result)
+        tmp.headers.add('Access-Control-Allow-Origin', 'https://ban-sc.idc.tarento.com')
+        return tmp
     else:
         return json.dumps({'generate_srt':'false'})
 

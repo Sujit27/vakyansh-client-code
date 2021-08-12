@@ -4,7 +4,7 @@ from flask import send_file
 import main
 
 app = Flask(__name__)
-CORS(app, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
+CORS(app, max_age=3600, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 

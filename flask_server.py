@@ -1,5 +1,5 @@
 from flask import Flask, json, request
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask import send_file
 import main
 
@@ -10,6 +10,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 @app.route('/generate_srt',methods=['POST'])
+@cross_origin()
 def generate_srt():
     body = request.get_json()
     url = body["url"]

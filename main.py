@@ -89,6 +89,9 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
         output_files.append(output_file_path)
     unique_id=str(unique_id)+'.srt'
     final_srt_file,final_srt_json = merge_srt_files(output_files,unique_id)
+    num_words_for_sen_should_less_than=30
+    modify_srt_for_long_sen(final_srt_file , num_words_for_sen_should_less_than)
+
     if translate_to_en:
         print("Translating subtitles to english")
         translate_srt_file(final_srt_file,language)
@@ -105,7 +108,7 @@ def flaskresponse(url, language):
         key = "mysecrettoken"
         interceptors = [MetadataClientInterceptor(key)]
         # with grpc.insecure_channel('54.213.245.181:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-        grpc_channel = grpc.insecure_channel('54.184.23.198:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+        grpc_channel = grpc.insecure_channel('localhost:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
         with grpc_channel as channel:
             channel = grpc.intercept_channel(channel, *interceptors)
             stub = RecognizeStub(channel)

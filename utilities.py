@@ -137,6 +137,124 @@ def translate_srt_file(srt_file,src_lang):
 
     subs.save(srt_file, encoding='utf-8')
 
+def modify_srt_for_long_sen(file_name_srt , num_words_div):
+
+    file_name=file_name_srt 
+
+    # num_words_div  value  is an integer , it represents  each sentence should  have the number of words less than  num_words_div  
+    num_words_divide=num_words_div
+
+    final_start_timmings=[]
+    final_end_timmings=[]
+
+
+    all_sentences = pysrt.open(file_name)
+
+    for  subs in all_sentences:
+        first_sub = subs    
+        if len(first_sub.text.split())> num_words_divide:
+            percentage=[]
+            loops=int(len(first_sub.text.split())/num_words_divide)
+            
+            each_part=100/len(first_sub.text.split())
+            for loop in range(loops):
+                percentage.append(each_part*num_words_divide)
+            #percentage.append(each_part*(len(first_sub.text.split())%num_words_divide))
+
+            time_resp_per=[]
+            seconds_only=first_sub.duration.minutes *60 +first_sub.duration.seconds
+            full_seconds=str(seconds_only)+'.'+str(first_sub.duration.milliseconds)
+            time_sec_mill=float(full_seconds)
+            for i in percentage:
+
+                time_resp_per.append(i*time_sec_mill/100)
+            time_resp_per=[round(time_round,3)  for time_round in time_resp_per]
+            start_timmings=[]
+            start_timmings.append("%02d" % int(first_sub.start.hours)+':'+"%02d" % int(first_sub.start.minutes)+':'+"%02d" % int(first_sub.start.seconds)+','+"%02d" % int(first_sub.start.milliseconds))
+            for j in range(len(time_resp_per)):
+                first_sub.shift(seconds=time_resp_per[j]) 
+                start_timmings.append("%02d" % int(first_sub.start.hours)+':'+"%02d" % int(first_sub.start.minutes)+':'+"%02d" % int(first_sub.start.seconds)+','+"%02d" % int(first_sub.start.milliseconds))
+
+            #start_timmings[1]='00:01:18,00'
+
+            final_start_timmings.append(start_timmings)
+
+    inx=0
+    all_sentences = pysrt.open(file_name)
+    for  subs in all_sentences:
+        first_sub =subs
+        if len(first_sub.text.split())> num_words_divide:
+            
+            end_time=first_sub.end
+            end_timmings=[]
+            for timmings in final_start_timmings[inx][1:]:
+                if timmings.split(',')[1]=='00' or timmings.split(',')[1]=='000' or timmings.split(',')[1]=='001' or timmings.split(',')[1]=='01' or timmings.split(',')[1]=='002' or timmings.split(',')[1]=='02':
+                    changing_minut=timmings.split(':')[2]
+                    changing_minut=changing_minut.split(',')
+                    milli_sec=timmings.split(':')[0]+':'+timmings.split(':')[1]+':'+'%02d'%(int(changing_minut[0]))+','+str('00')
+                else:
+                    milli_change=int(timmings.split(',')[1])
+                    milli_change=milli_change-5               
+                    milli_sec=timmings.split(',')[0]+','+str(abs(milli_change))
+
+
+                end_timmings.append(milli_sec)
+
+
+            end_timmings.append("%02d" % int(end_time.hours)+':'+"%02d" % int(end_time.minutes)+':'+"%02d" % int(end_time.seconds)+','+"%02d" % int(end_time.milliseconds))
+
+            final_end_timmings.append(end_timmings)
+            inx=inx+1
+
+
+
+    all_sentences = pysrt.open(file_name)
+
+    global_count=1
+
+    inx1=0
+
+    os.remove(file_name)
+    for  subs in all_sentences:
+        first_sub = subs
+        if len(first_sub.text.split())> num_words_divide:
+            with open(file_name,'a') as file_handler:
+                
+                subtext=[]
+                
+                count_sub_text=len(final_start_timmings[inx1])
+                
+                sub_text_list=first_sub.text.split()
+                for index in range(count_sub_text): 
+                    count=index+1
+                    count1=index*num_words_divide
+                    count2=count*num_words_divide
+                    if index==(count_sub_text-1):
+                        subtext.append(' '.join(sub_text_list[count1:]))
+                    else:    
+                        subtext.append(' '.join(sub_text_list[count1:count2]))
+
+                
+                for index in range(len(subtext)):
+                    
+                    file_handler.write('{}\n'.format(global_count))
+                    global_count=global_count+1
+                
+                    file_handler.write("{} --> {}\n".format(final_start_timmings[inx1][index],final_end_timmings[inx1][index]))
+                    
+                    file_handler.write("{}\n\n".format(subtext[index]))
+                inx1=inx1+1
+        else:
+            with open(file_name,'a') as file_handler:
+                end_time=first_sub.end
+                start=("%02d" % int(first_sub.start.hours)+':'+"%02d" % int(first_sub.start.minutes)+':'+"%02d" % int(first_sub.start.seconds)+','+"%02d" % int(first_sub.start.milliseconds))
+                end=("%02d" % int(end_time.hours)+':'+"%02d" % int(end_time.minutes)+':'+"%02d" % int(end_time.seconds)+','+"%02d" % int(end_time.milliseconds))
+                
+                file_handler.write('{}\n'.format(global_count))
+                global_count=global_count+1
+                file_handler.write("{} --> {}\n".format(start,end))
+                file_handler.write("{}\n\n".format(first_sub.text))
+
 
 # def store_str_into_file(srt_response,output_file_path):
 

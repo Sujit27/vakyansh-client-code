@@ -89,7 +89,7 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
         output_files.append(output_file_path)
     unique_id=str(unique_id)+'.srt'
     final_srt_file,final_srt_json = merge_srt_files(output_files,unique_id)
-    num_words_for_sen_should_less_than=30
+    num_words_for_sen_should_less_than=35
     modify_srt_for_long_sen(final_srt_file , num_words_for_sen_should_less_than)
 
     if translate_to_en:

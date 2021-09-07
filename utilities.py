@@ -90,6 +90,15 @@ def merge_srt_files(srt_files,final_file="subtitle.srt"):
     outputdict['filename']=final_file
     return(filename,outputdict)
 
+def translate_to_english(user_translation_choice):
+    translate_to_en=False
+    try:
+        trans_eng=(user_translation_choice).lower()
+        if (trans_eng)=='true' or  (trans_eng)=='yes':
+            translate_to_en=True
+    except:
+        pass
+    return translate_to_en
 
 def get_auth_token():
     try:
@@ -304,41 +313,3 @@ def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_na
         audio_chunk.export( output_dir_name+"/audio_chunk_{}_{}.wav".format(end,speaker_number[times]), format="wav")
 
 
-
-# def store_str_into_file(srt_response,output_file_path):
-
-#     list1=[]
-#     list2=[]
-#     list3=[]
-#     list4=[]
-#     list5=[]
-
-#     list1=(re.split('(\d+\s\d\d:\d\d:\d\d,[\d]+\s-->\s\d\d:\d\d:\d\d,[\d]+)', srt_response))
-#     list2=list1[1: :2]
-#     list3=[]
-#     for li in list2:
-#         list3.extend(li.split(' ',1))
-        
-#     list4=list1[2::2]
-#     list4=[li.strip() for li in list4]
-#     count=0
-#     count1=0
-#     list5=[]
-#     while count<len(list4):
-        
-#         list5.append(list3[count1])
-#         count1=count1+1
-#         list5.append(list3[count1])
-#         count1=count1+1
-#         list5.append(list4[count])
-#         count=count+1
-#         list5.append('\n')
-
-#     print(list5)
-#     print()
-#     with open(output_file_path, 'w') as file_handler:
-#         for item in list5:
-#             if item!='\n':
-#                 file_handler.write("{}\n".format(item))
-#             else:
-#                 file_handler.write("{}".format(item))

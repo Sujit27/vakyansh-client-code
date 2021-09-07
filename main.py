@@ -124,13 +124,7 @@ if __name__ == '__main__':
     parser.add_argument("--trans_eng",help=" eng Translate ",type=str,)
     args = parser.parse_args()
 
-    translate_to_en=False
-    try:
-        trans_eng=(args.trans_eng).lower()
-        if (trans_eng)=='true' or  (trans_eng)=='yes':
-            translate_to_en=True
-    except:
-        pass
+    translate_to_en = translate_to_english(args.trans_eng)
    
     url = args.url 
     subprocess.call(['youtube-dl {}'.format(url)], shell=True)

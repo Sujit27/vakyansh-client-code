@@ -108,7 +108,7 @@ def flaskresponse(url, language):
         key = "mysecrettoken"
         interceptors = [MetadataClientInterceptor(key)]
         # with grpc.insecure_channel('54.213.245.181:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-        grpc_channel = grpc.insecure_channel('localhost:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+        grpc_channel = grpc.insecure_channel('52.13.63.64:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
         with grpc_channel as channel:
             channel = grpc.intercept_channel(channel, *interceptors)
             stub = RecognizeStub(channel)
@@ -136,12 +136,12 @@ if __name__ == '__main__':
     subprocess.call(['youtube-dl {}'.format(url)], shell=True)
     
     audio_file = download_youtubeaudio(url)
-
+    #audio_file="/home/test/Desktop/ASR/OLA/Test calls-20210906T071212Z-001/first112.wav"
 
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
     # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-    grpc_channel = grpc.insecure_channel('localhost:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+    grpc_channel = grpc.insecure_channel('52.13.63.64:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
     with grpc_channel as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
         # stub = SpeechRecognizerStub(channel)

@@ -11,6 +11,7 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 import pysrt
 import re
+import shutil
 
 def read_given_audio(audio_file):
     with wave.open(audio_file, 'rb') as f:
@@ -254,6 +255,54 @@ def modify_srt_for_long_sen(file_name_srt , num_words_div):
                 global_count=global_count+1
                 file_handler.write("{} --> {}\n".format(start,end))
                 file_handler.write("{}\n\n".format(first_sub.text))
+
+
+
+
+def split_aud_into_chunks_for_speech_recognition(text_file,aud_file,output_dir_name='speaker_recong_chunks'):
+    
+    if os.path.exists(output_dir_name):
+        shutil.rmtree(output_dir_name)
+    os.makedirs(output_dir_name)
+
+    audio_file= aud_file
+    audio = AudioSegment.from_wav(audio_file)
+
+    txt_file=text_file
+    with open(txt_file) as f:
+        lines = f.readlines()
+
+
+    start_times=[lin.split()[0].strip() for lin in lines]
+    end_times=[lin.split()[2].strip() for lin in lines]
+    speaker_number=[lin.split()[4] for lin in lines]
+
+
+    final_start_milli_sec=[]
+    final_end_milli_sec=[]
+
+    for inx in range(len(start_times)):
+
+        h=int(start_times[inx].split(":")[0])*60*60
+        m=int(start_times[inx].split(":")[1])*60
+        s=int(start_times[inx].split(":")[2].split(",")[0])
+        milli_sec=int(start_times[inx].split(":")[2].split(",")[1])
+        final_start_milli_sec.append(((h+m+s)*1000)+milli_sec)
+
+        h=int(end_times[inx].split(":")[0])*60*60
+        m=int(end_times[inx].split(":")[1])*60
+        s=int(end_times[inx].split(":")[2].split(",")[0])
+        milli_sec=int(end_times[inx].split(":")[2].split(",")[1])
+        final_end_milli_sec.append(((h+m+s)*1000)+milli_sec)
+
+
+    for times in range(len(final_start_milli_sec)):
+        start=final_start_milli_sec[times]
+        end=final_end_milli_sec[times]
+
+        audio_chunk=audio[start:end]
+        audio_chunk.export( output_dir_name+"/audio_chunk_{}_{}.wav".format(end,speaker_number[times]), format="wav")
+
 
 
 # def store_str_into_file(srt_response,output_file_path):

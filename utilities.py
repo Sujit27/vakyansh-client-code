@@ -259,7 +259,7 @@ def modify_srt_for_long_sen(file_name_srt , num_words_div):
 
 
 
-def split_aud_into_chunks_for_speech_recognition(text_file,aud_file,output_dir_name='speaker_recong_chunks'):
+def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_name='speaker_recogition_chunks'):
     
     if os.path.exists(output_dir_name):
         shutil.rmtree(output_dir_name)

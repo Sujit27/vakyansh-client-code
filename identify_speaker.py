@@ -34,7 +34,7 @@ def id_speaker_from_wav(audio_file_path):
     wav = preprocess_wav(wav_fpath)
     # print(wav.shape)
     encoder = VoiceEncoder("cpu")
-    _, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True, rate=8)
+    _, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True, rate=4)
     # print(cont_embeds.shape)
 
     clusterer = SpectralClusterer(
@@ -51,7 +51,9 @@ def id_speaker_from_wav(audio_file_path):
         for item in labelling:
             f.write("{} : {} -> {} \n".format(convert(item[1]),convert(item[2]),item[0]))
 
+    return output_file
+
 if __name__ == "__main__":
     #give the file path to your audio file
-    audio_file_path = '9986383563_sheik_ienergizer@olacabs.com_2021-08-01-14-44-43.wav'
+    audio_file_path = 'sample.wav'
     id_speaker_from_wav(audio_file_path)

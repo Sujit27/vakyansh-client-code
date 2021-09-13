@@ -10,9 +10,11 @@ import shutil
 import subprocess
 import generate_chunks
 from utilities import *
+from identify_speaker import *
 import config
 from argparse import ArgumentParser
 import shutil
+import glob
 
 
 MAX_MESSAGE_LENGTH = 50 * 1024 * 1024
@@ -116,29 +118,77 @@ def flaskresponse(url, language):
             result = gen_srt_full(stub,audio_file,language, False)
             return(result)
 
-if __name__ == '__main__':
-    parser = ArgumentParser()
+def transcribe_audio_bytes(stub,audio_file):
+    language = "hi"
+    audio_bytes = read_given_audio(audio_file)
+    lang = Language(value=language, name='Hindi')
+    config = RecognitionConfig(language=lang,  transcriptionFormat='TRANSCRIPT',
+                               enableAutomaticPunctuation=1)
+    audio = RecognitionAudio(audioContent=audio_bytes)
+    request = SpeechRecognitionRequest(audio=audio, config=config)
+    output = None
+    try:
+        response = stub.recognize(request)
 
-    parser.add_argument("--url",help="youtub video  url",type=str,required=True)
-    parser.add_argument("--lang_code",help="language of video",type=str,required=True,)
-    parser.add_argument("--trans_eng",help=" eng Translate ",type=str,)
-    args = parser.parse_args()
-
-    translate_to_en = translate_to_english(args.trans_eng)
-   
-    url = args.url 
-    subprocess.call(['youtube-dl {}'.format(url)], shell=True)
+        output = response.transcript
+    except grpc.RpcError as e:
+        e.details()
+        status_code = e.code()
+        print(status_code.name)
+        print(status_code.value)
     
-    audio_file = download_youtubeaudio(url)
-    #audio_file="/home/test/Desktop/ASR/OLA/Test calls-20210906T071212Z-001/first112.wav"
+    return output
 
+if __name__ == '__main__':
+    # parser = ArgumentParser()
+
+    # parser.add_argument("--url",help="youtub video  url",type=str,required=True)
+    # parser.add_argument("--lang_code",help="language of video",type=str,required=True,)
+    # parser.add_argument("--trans_eng",help=" eng Translate ",type=str,)
+    # args = parser.parse_args()
+
+    # translate_to_en = translate_to_english(args.trans_eng)
+   
+    # url = args.url 
+    # subprocess.call(['youtube-dl {}'.format(url)], shell=True)
+    
+    # audio_file = download_youtubeaudio(url)
+    # #audio_file="/home/test/Desktop/ASR/OLA/Test calls-20210906T071212Z-001/first112.wav"
+
+    # key = "mysecrettoken"
+    # interceptors = [MetadataClientInterceptor(key)]
+    # # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
+    # grpc_channel = grpc.insecure_channel('52.13.63.64:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+    # with grpc_channel as channel:
+    #     channel = grpc.intercept_channel(channel, *interceptors)
+    #     # stub = SpeechRecognizerStub(channel)
+    #     stub = RecognizeStub(channel)
+    #     # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
+    #     gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
+
+    raw_audio_file = "sample_4.wav"  
+    audio_file = "input.wav"
+    subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(raw_audio_file, 16000, 1, 16, audio_file)], shell=True)
+    speaker_id_txt_file = id_speaker_from_wav(audio_file)
+    output_dir_name = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,audio_file)
+    files = list(glob.glob(output_dir_name + "/*.wav"))
+    files = list(glob.glob('speaker_recogition_chunks' + "/*.wav"))
+    files.sort(key = lambda x:int(x.split("/")[1].split("_")[2]))
+    # print(files)
+
+    output_transcript = []
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
-    # with grpc.insecure_channel('localhost:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-    grpc_channel = grpc.insecure_channel('52.13.63.64:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
-    with grpc_channel as channel:
+    with grpc.insecure_channel('localhost:50051') as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
-        # stub = SpeechRecognizerStub(channel)
-        stub = RecognizeStub(channel)
-        # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
-        gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
+        stub = SpeechRecognizerStub(channel)
+        # print(transcribe_audio_bytes(stub, audio_file))
+        for file in files:
+            speaker_id = file.split("/")[1].split("_")[3].split(".")[0]
+            transcription = transcribe_audio_bytes(stub, file)
+            if transcription is not None:
+                line = speaker_id + " : " + transcribe_audio_bytes(stub, file)
+            output_transcript.append(line)
+
+    print("\n".join(output_transcript))
+

@@ -39,10 +39,10 @@ def download_youtubeaudio(url):
         }]
         }
 
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-        subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(filepath, 16000, 1, 16, output_file)], shell=True)
-        os.remove(filepath)
+        # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        #     ydl.download([url])
+        subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(url, 16000, 1, 16, output_file)], shell=True)
+        # os.remove(filepath)
         return output_file
     except Exception as e:
         print(e)
@@ -311,5 +311,7 @@ def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_na
 
         audio_chunk=audio[start:end]
         audio_chunk.export( output_dir_name+"/audio_chunk_{}_{}.wav".format(end,speaker_number[times]), format="wav")
+
+    return output_dir_name
 
 

@@ -183,11 +183,13 @@ if __name__ == '__main__':
         stub = SpeechRecognizerStub(channel)
         # print(transcribe_audio_bytes(stub, audio_file))
         for file in files:
-            speaker_id = file.split("/")[1].split("_")[3].split(".")[0]
+            speaker_id = "speaker" + file.split("/")[1].split("_")[3].split(".")[0]
             transcription = transcribe_audio_bytes(stub, file)
             if transcription is not None:
                 line = speaker_id + " : " + transcribe_audio_bytes(stub, file)
             output_transcript.append(line)
 
-    print("\n".join(output_transcript))
+    with open('transcript.txt', 'w') as f:
+        for item in output_transcript:
+            f.write("%s\n" % item)
 

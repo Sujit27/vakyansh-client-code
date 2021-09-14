@@ -166,13 +166,12 @@ if __name__ == '__main__':
     #     # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
     #     gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
 
-    raw_audio_file = "sample_4.wav"  
+    raw_audio_file = "sample_1.wav"  
     audio_file = "input.wav"
     subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(raw_audio_file, 16000, 1, 16, audio_file)], shell=True)
     speaker_id_txt_file = id_speaker_from_wav(audio_file)
     output_dir_name = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,audio_file)
     files = list(glob.glob(output_dir_name + "/*.wav"))
-    files = list(glob.glob('speaker_recogition_chunks' + "/*.wav"))
     files.sort(key = lambda x:int(x.split("/")[1].split("_")[2]))
     # print(files)
 

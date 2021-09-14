@@ -12,6 +12,7 @@ from pydub.utils import make_chunks
 import pysrt
 import re
 import shutil
+from datetime import datetime, timedelta
 
 def read_given_audio(audio_file):
     with wave.open(audio_file, 'rb') as f:
@@ -268,43 +269,47 @@ def modify_srt_for_long_sen(file_name_srt , num_words_div):
 
 
 
-def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_name='speaker_recogition_chunks'):
+def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_name='speaker_recong_chunks'):
+    
     
     if os.path.exists(output_dir_name):
         shutil.rmtree(output_dir_name)
     os.makedirs(output_dir_name)
-
     audio_file= aud_file
     audio = AudioSegment.from_wav(audio_file)
-
     txt_file=text_file
     with open(txt_file) as f:
         lines = f.readlines()
 
-
+    
     start_times=[lin.split()[0].strip() for lin in lines]
     end_times=[lin.split()[2].strip() for lin in lines]
     speaker_number=[lin.split()[4] for lin in lines]
+    
 
-
+    
     final_start_milli_sec=[]
     final_end_milli_sec=[]
 
     for inx in range(len(start_times)):
+        
+        
+        
+        times1=start_times[inx]
+        timet1 = datetime.strptime(times1,"%H:%M:%S,%f")
+        milli_sec=int(timet1.microsecond/1000)
 
-        h=int(start_times[inx].split(":")[0])*60*60
-        m=int(start_times[inx].split(":")[1])*60
-        s=int(start_times[inx].split(":")[2].split(",")[0])
-        milli_sec=int(start_times[inx].split(":")[2].split(",")[1])
-        final_start_milli_sec.append(((h+m+s)*1000)+milli_sec)
+        total_time_in_milli=(((timet1.hour*60*60)+(timet1.minute*60)+(timet1.second))*1000)+milli_sec
+        final_start_milli_sec.append(total_time_in_milli)
+        
+        times1=end_times[inx]
+        timet1 = datetime.strptime(times1,"%H:%M:%S,%f")
+        milli_sec=int(timet1.microsecond/1000)
 
-        h=int(end_times[inx].split(":")[0])*60*60
-        m=int(end_times[inx].split(":")[1])*60
-        s=int(end_times[inx].split(":")[2].split(",")[0])
-        milli_sec=int(end_times[inx].split(":")[2].split(",")[1])
-        final_end_milli_sec.append(((h+m+s)*1000)+milli_sec)
-
-
+        total_time_in_milli=(((timet1.hour*60*60)+(timet1.minute*60)+(timet1.second))*1000)+milli_sec
+        final_end_milli_sec.append(total_time_in_milli)
+        
+        
     for times in range(len(final_start_milli_sec)):
         start=final_start_milli_sec[times]
         end=final_end_milli_sec[times]

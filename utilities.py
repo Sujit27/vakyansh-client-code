@@ -280,44 +280,30 @@ def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_na
     txt_file=text_file
     with open(txt_file) as f:
         lines = f.readlines()
-
-    
     start_times=[lin.split()[0].strip() for lin in lines]
     end_times=[lin.split()[2].strip() for lin in lines]
     speaker_number=[lin.split()[4] for lin in lines]
-    
-
-    
     final_start_milli_sec=[]
     final_end_milli_sec=[]
 
     for inx in range(len(start_times)):
-                
         times1=start_times[inx]
         timet1 = datetime.strptime(times1,"%H:%M:%S,%f")
         milli_sec=int(timet1.microsecond/1000)
-
         total_time_in_milli_start = (((timet1.hour*60*60)+(timet1.minute*60)+(timet1.second))*1000)+milli_sec
         final_start_milli_sec.append(total_time_in_milli_start)
-        
         times1=end_times[inx]
         timet1 = datetime.strptime(times1,"%H:%M:%S,%f")
         milli_sec=int(timet1.microsecond/1000)
-
         total_time_in_milli_end = (((timet1.hour*60*60)+(timet1.minute*60)+(timet1.second))*1000)+milli_sec
         time_dur_milli = total_time_in_milli_end - total_time_in_milli_start
         if time_dur_milli > trans_chunk_trunc_limit_milli_sec:
             total_time_in_milli_end = total_time_in_milli_start + trans_chunk_trunc_limit_milli_sec
         final_end_milli_sec.append(total_time_in_milli_end)
-        
-        
     for times in range(len(final_start_milli_sec)):
         start=final_start_milli_sec[times]
         end=final_end_milli_sec[times]
-
         audio_chunk=audio[start:end]
         audio_chunk.export( output_dir_name+"/audio_chunk_{}_{}.wav".format(end,speaker_number[times]), format="wav")
 
     return output_dir_name
-
-

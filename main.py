@@ -118,6 +118,24 @@ def flaskresponse(url, language):
             result = gen_srt_full(stub,audio_file,language, False)
             return(result)
 
+
+def get_srt_audio_bytes(stub,audio_file,language):
+    '''
+    Given an audio file, generates srt for the first 5 min
+    '''
+    unique_id=uuid.uuid1()
+    file_unique_id=str(unique_id)
+    audio_bytes = read_given_audio(audio_file)
+    lang = Language(value=language, name=config.language_code_dict[language])
+    recog_config = RecognitionConfig(language=lang, audioFormat='WAV', transcriptionFormat='SRT',
+                               enableInverseTextNormalization=False)
+    # audio = RecognitionAudio(audioContent=audio_bytes)
+
+    request = SRTRequest(audio=audio_bytes,language=language,user="ajitesh",filename=file_unique_id)
+    #print("request sent********")
+    response = stub.recognize_srt(request)
+    return response
+
 def transcribe_audio_bytes(stub,audio_file):
     language = "hi"
     audio_bytes = read_given_audio(audio_file)
@@ -166,7 +184,8 @@ if __name__ == '__main__':
     #     # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
     #     gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
 
-    raw_audio_file = "sample_1.wav"  
+    raw_audio_file = "/home/test/Desktop/ASR/ULCA_TEST_AUDIO/928_1.wav"
+    aud_language='hi'
     audio_file = "input.wav"
     subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(raw_audio_file, 16000, 1, 16, audio_file)], shell=True)
     speaker_id_txt_file = id_speaker_from_wav(audio_file)
@@ -180,14 +199,22 @@ if __name__ == '__main__':
     interceptors = [MetadataClientInterceptor(key)]
     with grpc.insecure_channel('localhost:50051') as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
-        stub = SpeechRecognizerStub(channel)
+        stub = RecognizeStub(channel)
         # print(transcribe_audio_bytes(stub, audio_file))
         for file in files:
             speaker_id = "speaker" + file.split("/")[1].split("_")[3].split(".")[0]
-            transcription = transcribe_audio_bytes(stub, file)
+            transcription = get_srt_audio_bytes(stub, file,aud_language)
+            with open('srt_file.srt', 'w') as f:
+                f.write(transcription.srt)
+            subs = pysrt.open('srt_file.srt')
+            line=''
+            for sub in subs:
+                str1=sub.text
+                if str1!='[ Voice is not clearly audible ]':
+                    line=line+' '+str1
             if transcription is not None:
-                line = speaker_id + " : " + transcribe_audio_bytes(stub, file)
-            output_transcript.append(line)
+                line1= speaker_id + " : " +line
+            output_transcript.append(line1)
 
     with open('transcript.txt', 'w') as f:
         for item in output_transcript:

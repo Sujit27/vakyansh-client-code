@@ -184,7 +184,7 @@ if __name__ == '__main__':
     #     # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
     #     gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
 
-    raw_audio_file = "/home/test/Desktop/ASR/ULCA_TEST_AUDIO/928_1.wav"
+    raw_audio_file = "/home/test/Desktop/ASR/test.wav"
     aud_language='hi'
     audio_file = "input.wav"
     subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(raw_audio_file, 16000, 1, 16, audio_file)], shell=True)

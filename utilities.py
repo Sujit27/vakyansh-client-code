@@ -304,6 +304,9 @@ def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_na
         start=final_start_milli_sec[times]
         end=final_end_milli_sec[times]
         audio_chunk=audio[start:end]
-        audio_chunk.export( output_dir_name+"/audio_chunk_{}_{}.wav".format(end,speaker_number[times]), format="wav")
+        if end>start:
+            audio_chunk.export( output_dir_name+"/audio_chunk_{}_{}.wav".format(end,speaker_number[times]), format="wav")
+
+
 
     return output_dir_name

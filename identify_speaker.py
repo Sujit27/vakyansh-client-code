@@ -34,7 +34,7 @@ def id_speaker_from_wav(audio_file_path):
     wav = preprocess_wav(wav_fpath)
     # print(wav.shape)
     encoder = VoiceEncoder("cpu")
-    _, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True, rate=4)
+    _, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True)
     # print(cont_embeds.shape)
 
     clusterer = SpectralClusterer(

@@ -8,4 +8,4 @@ chunks
 *.mkv
 *.webm
 *.srt
-input.txt
+tmp/

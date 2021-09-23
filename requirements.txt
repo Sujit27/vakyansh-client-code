@@ -28,4 +28,5 @@ Flask-Cors==1.10.3
 
 spectralcluster==0.1.0
 git+https://github.com/Sujit27/speaker-identification
+denoiser 0.1.4 
 

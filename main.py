@@ -11,6 +11,7 @@ import subprocess
 import generate_chunks
 from utilities import *
 from identify_speaker import *
+from utils_denoise import *
 import config
 from argparse import ArgumentParser
 import shutil
@@ -140,10 +141,10 @@ def transcribe_audio_bytes(stub,audio_file):
     language = "hi"
     audio_bytes = read_given_audio(audio_file)
     lang = Language(value=language, name='Hindi')
-    config = RecognitionConfig(language=lang,  transcriptionFormat='TRANSCRIPT',
+    configuration = RecognitionConfig(language=lang,  transcriptionFormat='TRANSCRIPT',
                                enableAutomaticPunctuation=1)
     audio = RecognitionAudio(audioContent=audio_bytes)
-    request = SpeechRecognitionRequest(audio=audio, config=config)
+    request = SpeechRecognitionRequest(audio=audio, config=configuration)
     output = None
     try:
         response = stub.recognize(request)
@@ -184,13 +185,19 @@ if __name__ == '__main__':
     #     # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
     #     gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
 
-    raw_audio_file = "/home/test/Desktop/ASR/test.wav"
-    aud_language='hi'
-    audio_file = "input.wav"
-    subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(raw_audio_file, 16000, 1, 16, audio_file)], shell=True)
-    speaker_id_txt_file = id_speaker_from_wav(audio_file)
-    output_dir_name = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,audio_file)
-    files = list(glob.glob(output_dir_name + "/*.wav"))
+    raw_audio_file = "test/speaker_id/9986383563_sheik_ienergizer@olacabs.com_2021-08-01-14-44-43.wav"
+    language_code = 'kn'
+
+    temp_dir = 'tmp'
+    media_conversion(raw_audio_file,temp_dir)
+
+    noise_suppression_extended(temp_dir)
+    audio_file = temp_dir + '/input_audio.wav'
+    enhanced_file = temp_dir + '/input_audio_enhanced.wav'
+
+    speaker_id_txt_file = id_speaker_from_wav(enhanced_file)
+    speaker_chunks_dir = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,audio_file)
+    files = list(glob.glob(speaker_chunks_dir + "/*.wav"))
     files.sort(key = lambda x:int(x.split("/")[1].split("_")[2]))
     # print(files)
 
@@ -203,7 +210,7 @@ if __name__ == '__main__':
         # print(transcribe_audio_bytes(stub, audio_file))
         for file in files:
             speaker_id = "speaker" + file.split("/")[1].split("_")[3].split(".")[0]
-            transcription = get_srt_audio_bytes(stub, file,aud_language)
+            transcription = get_srt_audio_bytes(stub, file,language_code)
             with open('srt_file.srt', 'w') as f:
                 f.write(transcription.srt)
             subs = pysrt.open('srt_file.srt')
@@ -216,7 +223,8 @@ if __name__ == '__main__':
                 line1= speaker_id + " : " +line
             output_transcript.append(line1)
 
-    with open('transcript.txt', 'w') as f:
-        for item in output_transcript:
-            f.write("%s\n" % item)
+    output_transcript_file = raw_audio_file.split(".")[0] + ".txt"
+    with open(output_transcript_file, 'w') as f:
+            for item in output_transcript:
+                f.write("%s\n" % item)
 

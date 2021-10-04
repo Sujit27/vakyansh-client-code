@@ -1,5 +1,6 @@
 import os
 import time
+from librosa.filters import constant_q
 
 from sklearn import cluster
 from resemblyzer import preprocess_wav, VoiceEncoder
@@ -8,6 +9,7 @@ from spectralcluster import SpectralClusterer
 from resemblyzer import sampling_rate
 from sklearn.cluster import SpectralClustering, AgglomerativeClustering
 import hdbscan
+from sklearn.metrics.pairwise import cosine_distances
 
 
 def convert(seconds):
@@ -38,7 +40,7 @@ def id_speaker_from_wav(audio_file_path):
     wav = preprocess_wav(wav_fpath)
     encoder = VoiceEncoder("cpu")
 
-    _, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True, rate=1.3)
+    _, cont_embeds, wav_splits = encoder.embed_utterance(wav, return_partials=True, rate=5)
 
     clusterer = SpectralClusterer(
         min_clusters=2,
@@ -48,11 +50,14 @@ def id_speaker_from_wav(audio_file_path):
 
     labels = clusterer.predict(cont_embeds)
 
+    # embeddings = cont_embeds.astype("double")
+    # distance_matrix = cosine_distances(embeddings)
     # clusterer = SpectralClustering(n_clusters=2,n_components=20)
-    # clusterer = AgglomerativeClustering(n_clusters=2,affinity='euclidean', linkage='ward')
-    # clusterer = hdbscan.HDBSCAN(min_cluster_size=10,min_samples=5)
-    # labels = clusterer.fit_predict(cont_embeds)
-    
+    #clusterer = AgglomerativeClustering(n_clusters=3,affinity='euclidean', linkage='ward')
+    #clusterer = hdbscan.HDBSCAN(min_cluster_size=10,min_samples=5)
+    #labels = clusterer.fit_predict(cont_embeds)
+    # clusterer.fit(cont_embeds)
+    # labels=clusterer.labels_
     labelling = create_labelling(labels,wav_splits)
     
     output_file = str(os.path.splitext(audio_file_path)[0]) + ".txt"

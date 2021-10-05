@@ -12,6 +12,7 @@ import generate_chunks
 from utilities import *
 from identify_speaker import *
 from utils_denoise import *
+from silence_remove import *
 import config
 from argparse import ArgumentParser
 import shutil
@@ -185,18 +186,19 @@ if __name__ == '__main__':
     #     # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
     #     gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
 
-    raw_audio_file = "test/speaker_id/9986383563_sheik_ienergizer@olacabs.com_2021-08-01-14-44-43.wav"
+    raw_audio_file = "/home/test/Desktop/ASR/OLA/Test_calls-20210906T071212Z-001/Test_calls/06395546472_alifiya_radical@olacabs.com_2021-08-01-13-05-20.wav"
     language_code = 'kn'
 
     temp_dir = 'tmp'
     media_conversion(raw_audio_file,temp_dir)
 
     noise_suppression_extended(temp_dir)
+    remove_silence()
     audio_file = temp_dir + '/input_audio.wav'
     enhanced_file = temp_dir + '/input_audio_enhanced.wav'
 
     speaker_id_txt_file = id_speaker_from_wav(enhanced_file)
-    speaker_chunks_dir = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,audio_file)
+    speaker_chunks_dir = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,enhanced_file)
     files = list(glob.glob(speaker_chunks_dir + "/*.wav"))
     files.sort(key = lambda x:int(x.split("/")[1].split("_")[2]))
     # print(files)

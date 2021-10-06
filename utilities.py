@@ -25,6 +25,7 @@ def convert(seconds):
         milli='00'
     return time.strftime(f"%H:%M:%S,{milli}", time.gmtime(seconds))
 
+
 def download_youtubeaudio(url):
     try:
         filepath = str(uuid.uuid4())+".wav"
@@ -40,10 +41,10 @@ def download_youtubeaudio(url):
         }]
         }
 
-        # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        #     ydl.download([url])
-        subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(url, 16000, 1, 16, output_file)], shell=True)
-        # os.remove(filepath)
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        subprocess.call(["ffmpeg -y -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(filepath, 16000, 1, 16, output_file)], shell=True)
+        os.remove(filepath)
         return output_file
     except Exception as e:
         print(e)
@@ -320,4 +321,4 @@ def media_conversion(file_name, dir_name):
     os.makedirs(dir_name)    
     subprocess.call(["ffmpeg -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(file_name, 16000, 1, 16, dir_name + '/input_audio.wav')], shell=True)    
     
-    return dir_name
+    

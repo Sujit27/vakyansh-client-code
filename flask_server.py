@@ -9,31 +9,39 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 #CORS(app, max_age=3600, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
 
 
-@app.route('/generate_srt',methods=['POST'])
+@app.route('/gen_srt_from_youtube_url',methods=['POST'])
 @cross_origin()
-def generate_srt():
+def gen_srt_from_youtube_url():
     body = request.get_json()
-    url = body["url"]
+    input = body["url"]
     language = body["language"]
-    result = main.flaskresponse(url,language)
+    result = main.flaskresponse(input,language,format='url')
     if(result):
         tmp = json.dumps(result)
         #tmp.headers.add('Access-Control-Allow-Origin', 'https://ban-sc.idc.tarento.com')
         return tmp
     else:
-        return json.dumps({'generate_srt':'false'})
+        return json.dumps({'gen_srt_from_youtube_url':'false'})
 
-# @app.route('/get_srt',methods=['GET'])
-# def download_srt():
-#     body = request.get_json()
-#     filename = body["filename"]
-#     return send_file("/home/ec2-user/vakyansh-client-v2/vakyansh-client-code/subtitles/"+filename, as_attachment=True)
+@app.route('/gen_srt_from_file',methods=['POST'])
+@cross_origin()
+def gen_srt_from_file():
+    body = request.get_json()
+    input = body["file"]
+    language = body["language"]
+    result = main.flaskresponse(input,language,format='file')
+    if(result):
+        tmp = json.dumps(result)
+        #tmp.headers.add('Access-Control-Allow-Origin', 'https://ban-sc.idc.tarento.com')
+        return tmp
+    else:
+        return json.dumps({'gen_srt_from_file':'false'})
 
 @app.route('/get_srt/<filename>',methods=['GET'])
 @cross_origin()
 def get_srt(filename):
     try:
-        return send_file("/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/subtitles/"+str(filename), as_attachment=True)
+        return send_file("/home/sujit27/projects/ASR/vakyansh-client-code/subtitles/"+str(filename), as_attachment=True)
     except:
         return json.dumps({'get_srt':'false'})
 

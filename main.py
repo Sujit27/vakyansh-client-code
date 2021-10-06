@@ -17,6 +17,7 @@ import config
 from argparse import ArgumentParser
 import shutil
 import glob
+import uuid
 
 
 MAX_MESSAGE_LENGTH = 50 * 1024 * 1024
@@ -104,21 +105,31 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
     return(final_srt_json)
     
 
-def flaskresponse(url, language):   
-        print("url ==== ", url)
-        print("language ==", language)
+def flaskresponse(input, language, format): 
+    '''takes an input (file or url) and language code 
+    returns the subtitle generated as json.
+    format should be either 'file' or 'url'
+    '''
+    print("input ==== ", input)
+    print("language ==", language)
 
-        audio_file = download_youtubeaudio(url)
-        key = "mysecrettoken"
-        interceptors = [MetadataClientInterceptor(key)]
-        # with grpc.insecure_channel('54.213.245.181:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-        grpc_channel = grpc.insecure_channel('52.13.63.64:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
-        with grpc_channel as channel:
-            channel = grpc.intercept_channel(channel, *interceptors)
-            stub = RecognizeStub(channel)
-            # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
-            result = gen_srt_full(stub,audio_file,language, False)
-            return(result)
+    if format == 'url':
+        audio_file = download_youtubeaudio(input)
+    elif format == 'file':
+        dir = str(uuid.uuid4())
+        media_conversion(input,dir)
+        audio_file = os.path.join(dir,'input_audio.wav')
+
+    key = "mysecrettoken"
+    interceptors = [MetadataClientInterceptor(key)]
+    # with grpc.insecure_channel('54.213.245.181:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
+    grpc_channel = grpc.insecure_channel('0.0.0.0:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+    with grpc_channel as channel:
+        channel = grpc.intercept_channel(channel, *interceptors)
+        stub = RecognizeStub(channel)
+        # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
+        result = gen_srt_full(stub,audio_file,language, False)
+        return(result)
 
 
 def get_srt_audio_bytes(stub,audio_file,language):
@@ -138,26 +149,6 @@ def get_srt_audio_bytes(stub,audio_file,language):
     response = stub.recognize_srt(request)
     return response
 
-def transcribe_audio_bytes(stub,audio_file):
-    language = "hi"
-    audio_bytes = read_given_audio(audio_file)
-    lang = Language(value=language, name='Hindi')
-    configuration = RecognitionConfig(language=lang,  transcriptionFormat='TRANSCRIPT',
-                               enableAutomaticPunctuation=1)
-    audio = RecognitionAudio(audioContent=audio_bytes)
-    request = SpeechRecognitionRequest(audio=audio, config=configuration)
-    output = None
-    try:
-        response = stub.recognize(request)
-
-        output = response.transcript
-    except grpc.RpcError as e:
-        e.details()
-        status_code = e.code()
-        print(status_code.name)
-        print(status_code.value)
-    
-    return output
 
 if __name__ == '__main__':
     # parser = ArgumentParser()
@@ -209,7 +200,6 @@ if __name__ == '__main__':
     with grpc.insecure_channel('localhost:50051') as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
         stub = RecognizeStub(channel)
-        # print(transcribe_audio_bytes(stub, audio_file))
         for file in files:
             speaker_id = "speaker" + file.split("/")[1].split("_")[3].split(".")[0]
             transcription = get_srt_audio_bytes(stub, file,language_code)

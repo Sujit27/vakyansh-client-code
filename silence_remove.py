@@ -127,12 +127,12 @@ def vad_collector(sample_rate, frame_duration_ms,
         yield b''.join([f.bytes for f in voiced_frames])
 
 
-def remove_silence():
+def remove_silence(wav_file):
     # if len(args) != 2:
     #     sys.stderr.write(
     #         'Usage: silenceremove.py <aggressiveness> <path to wav file>\n')
     #     sys.exit(1)
-    audio, sample_rate = read_wave("tmp/input_audio_enhanced.wav")
+    audio, sample_rate = read_wave(wav_file)
     vad = webrtcvad.Vad(int(3.0))
     frames = frame_generator(30, audio, sample_rate)
     frames = list(frames)
@@ -143,7 +143,7 @@ def remove_silence():
 
     joinedaudio = b"".join(concataudio)
 
-    write_wave("tmp/input_audio_enhanced.wav", joinedaudio, sample_rate)
+    write_wave(wav_file, joinedaudio, sample_rate)
 
 
 if __name__ == '__main__':

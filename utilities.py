@@ -315,10 +315,7 @@ def split_aud_into_chunks_on_speech_recognition(text_file,aud_file,output_dir_na
 def noise_suppression(dir_name):    
     subprocess.call(["python -m denoiser.enhance --dns48 --noisy_dir {} --out_dir {} --sample_rate {} --num_workers {} --device cpu".format(dir_name, dir_name, 16000, 1)], shell=True)
 
-def media_conversion(file_name, dir_name):
-    if os.path.isdir(dir_name):
-        shutil.rmtree(dir_name)
-    os.makedirs(dir_name)    
-    subprocess.call(["ffmpeg -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(file_name, 16000, 1, 16, dir_name + '/input_audio.wav')], shell=True)    
+def media_conversion(file_name, dir_name):   
+    subprocess.call(["ffmpeg -i {} -ar {} -ac {} -bits_per_raw_sample {} -vn {}".format(file_name, 16000, 1, 16, os.path.join(dir_name,'input_audio.wav'))], shell=True)    
     
     

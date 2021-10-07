@@ -9,3 +9,4 @@ chunks
 *.webm
 *.srt
 tmp/
+speaker_diarization/

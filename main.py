@@ -77,7 +77,7 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
     '''
     Given an audio file, generates srt 
     '''
-    unique_id=uuid.uuid1()
+    unique_id = uuid.uuid1()
 
     file_unique_id=str(unique_id)
     output_dir = 'chunks'+str(unique_id)
@@ -103,34 +103,6 @@ def gen_srt_full(stub,audio_file,language, translate_to_en):
     shutil.rmtree(output_dir)
     os.remove(audio_file)
     return(final_srt_json)
-    
-
-def flaskresponse(input, language, format): 
-    '''takes an input (file or url) and language code 
-    returns the subtitle generated as json.
-    format should be either 'file' or 'url'
-    '''
-    print("input ==== ", input)
-    print("language ==", language)
-
-    if format == 'url':
-        audio_file = download_youtubeaudio(input)
-    elif format == 'file':
-        dir = str(uuid.uuid4())
-        media_conversion(input,dir)
-        audio_file = os.path.join(dir,'input_audio.wav')
-
-    key = "mysecrettoken"
-    interceptors = [MetadataClientInterceptor(key)]
-    # with grpc.insecure_channel('54.213.245.181:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
-    grpc_channel = grpc.insecure_channel('0.0.0.0:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
-    with grpc_channel as channel:
-        channel = grpc.intercept_channel(channel, *interceptors)
-        stub = RecognizeStub(channel)
-        # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
-        result = gen_srt_full(stub,audio_file,language, False)
-        return(result)
-
 
 def get_srt_audio_bytes(stub,audio_file,language):
     '''
@@ -148,6 +120,82 @@ def get_srt_audio_bytes(stub,audio_file,language):
     #print("request sent********")
     response = stub.recognize_srt(request)
     return response
+
+def gen_speaker_diarization(stub,audio_file,language):
+
+    temp_dir = 'tmp'
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+    os.makedirs(temp_dir)
+    media_conversion(audio_file,temp_dir)
+
+    # noise_suppression_extended(temp_dir)
+    # enhanced_file = temp_dir + '/input_audio_enhanced.wav'
+    
+    enhanced_file = os.path.join(temp_dir,'input_audio.wav')
+    remove_silence(enhanced_file)
+
+    speaker_id_txt_file = id_speaker_from_wav(enhanced_file)
+    speaker_chunks_dir = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,enhanced_file)
+    shutil.rmtree(temp_dir)
+    files = list(glob.glob(speaker_chunks_dir + "/*.wav"))
+    files.sort(key = lambda x:int(x.split("/")[1].split("_")[2]))
+
+    output_transcript = []
+    for file in files:
+        speaker_id = "speaker" + file.split("/")[1].split("_")[3].split(".")[0]
+        transcription = get_srt_audio_bytes(stub, file,language)
+        with open('tmp_srt_file.srt', 'w') as f:
+            f.write(transcription.srt)
+        subs = pysrt.open('tmp_srt_file.srt')
+        line=''
+        for sub in subs:
+            text = sub.text
+            if text != '[ Voice is not clearly audible ]':
+                line = line + ' ' + text
+        if transcription is not None:
+            full_line = speaker_id + " : " +line
+        output_transcript.append(full_line)
+
+    if os.path.exists('speaker_diarization'):
+        pass
+    else:
+        os.makedirs('speaker_diarization')
+    output_transcript_file = os.path.join('speaker_diarization',str(uuid.uuid1()) + ".txt")
+    with open(output_transcript_file, 'w') as f:
+            for item in output_transcript:
+                f.write("%s\n" % item)
+    
+    result = {'filename':os.path.basename(output_transcript_file),'text':output_transcript}
+    return result
+    
+
+def flaskresponse(input,language,input_format,output_format): 
+    '''takes an input (file or url) and language code 
+    returns the subtitle generated as json.
+    format should be either 'file' or 'url'
+    '''
+    print("input ==== ", input)
+    print("language ==", language)
+
+    if input_format == 'url':
+        audio_file = download_youtubeaudio(input)
+    elif input_format == 'file':
+        audio_file = input
+
+    key = "mysecrettoken"
+    interceptors = [MetadataClientInterceptor(key)]
+    # with grpc.insecure_channel('54.213.245.181:50051',options=(('grpc.enable_http_proxy', 0),)) as channel:
+    grpc_channel = grpc.insecure_channel('0.0.0.0:50051', options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)])
+    with grpc_channel as channel:
+        channel = grpc.intercept_channel(channel, *interceptors)
+        stub = RecognizeStub(channel)
+        # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
+        if output_format == 'srt':
+            result = gen_srt_full(stub,audio_file,language, False)
+        elif output_format == 'diarization':
+            result = gen_speaker_diarization(stub,audio_file,language)
+    return(result)
 
 
 if __name__ == '__main__':
@@ -177,46 +225,14 @@ if __name__ == '__main__':
     #     # get_text_from_wavfile_any_length(stub,audio_file,lang=args.lang_code, translation=translate_to_en)
     #     gen_srt_full(stub,audio_file,args.lang_code, translate_to_en)
 
-    raw_audio_file = "/home/test/Desktop/ASR/OLA/Test_calls-20210906T071212Z-001/Test_calls/06395546472_alifiya_radical@olacabs.com_2021-08-01-13-05-20.wav"
-    language_code = 'kn'
+    raw_audio_file = "sample_hi.wav"
+    language_code = 'hi'
 
-    temp_dir = 'tmp'
-    media_conversion(raw_audio_file,temp_dir)
-
-    noise_suppression_extended(temp_dir)
-    remove_silence()
-    audio_file = temp_dir + '/input_audio.wav'
-    enhanced_file = temp_dir + '/input_audio_enhanced.wav'
-
-    speaker_id_txt_file = id_speaker_from_wav(enhanced_file)
-    speaker_chunks_dir = split_aud_into_chunks_on_speech_recognition(speaker_id_txt_file,enhanced_file)
-    files = list(glob.glob(speaker_chunks_dir + "/*.wav"))
-    files.sort(key = lambda x:int(x.split("/")[1].split("_")[2]))
-    # print(files)
-
-    output_transcript = []
     key = "mysecrettoken"
     interceptors = [MetadataClientInterceptor(key)]
     with grpc.insecure_channel('localhost:50051') as channel:
         channel = grpc.intercept_channel(channel, *interceptors)
         stub = RecognizeStub(channel)
-        for file in files:
-            speaker_id = "speaker" + file.split("/")[1].split("_")[3].split(".")[0]
-            transcription = get_srt_audio_bytes(stub, file,language_code)
-            with open('srt_file.srt', 'w') as f:
-                f.write(transcription.srt)
-            subs = pysrt.open('srt_file.srt')
-            line=''
-            for sub in subs:
-                str1=sub.text
-                if str1!='[ Voice is not clearly audible ]':
-                    line=line+' '+str1
-            if transcription is not None:
-                line1= speaker_id + " : " +line
-            output_transcript.append(line1)
-
-    output_transcript_file = raw_audio_file.split(".")[0] + ".txt"
-    with open(output_transcript_file, 'w') as f:
-            for item in output_transcript:
-                f.write("%s\n" % item)
+        gen_speaker_diarization(stub,raw_audio_file,language_code)
+        
 

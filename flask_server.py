@@ -8,8 +8,8 @@ CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 #CORS(app, max_age=3600, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
 
-subtitle_dir = "/home/sujit27/projects/ASR/vakyansh-client-code/subtitles/"
-speaker_diarization_dir = "/home/sujit27/projects/ASR/vakyansh-client-code/speaker_diarization/"
+subtitle_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/subtitles/"
+speaker_diarization_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/speaker_diarization/"
 
 
 @app.route('/gen_srt_from_youtube_url',methods=['POST'])

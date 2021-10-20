@@ -8,7 +8,7 @@ from pathlib import Path
 from spectralcluster import SpectralClusterer
 from resemblyzer import sampling_rate
 from sklearn.cluster import SpectralClustering, AgglomerativeClustering
-import hdbscan
+# import hdbscan
 from sklearn.metrics.pairwise import cosine_distances
 
 

@@ -1,6 +1,8 @@
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
 from flask import send_file
+from werkzeug.utils import secure_filename
+import os
 import main
 
 app = Flask(__name__)
@@ -10,7 +12,9 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 subtitle_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/subtitles/"
 speaker_diarization_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/speaker_diarization/"
+upload_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/uploads/"
 
+app.config['UPLOAD_PATH'] = upload_dir
 
 @app.route('/gen_srt_from_youtube_url',methods=['POST'])
 @cross_origin()
@@ -69,6 +73,22 @@ def get_speaker_diarization(filename):
         return send_file(speaker_diarization_dir+str(filename), as_attachment=True)
     except:
         return json.dumps({'get_srt':'false'})
+
+@app.route('/upload',methods=['POST'])
+@cross_origin()
+def upload(filename):
+    try:
+        uploaded_file = request.files['file']
+        filename = secure_filename(uploaded_file.filename)
+        if filename != '':
+            file_ext = os.path.splitext(filename)[1]
+            uploaded_file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
+        return_path = str(os.path.join(app.config['UPLOAD_PATH'], filename))
+        
+        return json.dumps({'uploaded_filepath': return_path })
+
+    except:
+        return json.dumps({'upload':'false'})
 
 if __name__ == '__main__':
     app.run(host = "0.0.0.0", port=5001, debug=True)

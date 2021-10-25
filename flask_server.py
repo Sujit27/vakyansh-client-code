@@ -4,17 +4,17 @@ from flask import send_file
 from werkzeug.utils import secure_filename
 import os
 import main
+import config
 
 app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 #CORS(app, max_age=3600, resources={r"*": {"origins": ["*","https://ban-sc.idc.tarento.com"]}})
 
-subtitle_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/subtitles/"
-speaker_diarization_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/speaker_diarization/"
-upload_dir = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/uploads/"
+subtitle_dir = config.SUBTITLE_DIR
+speaker_diarization_dir = config.SPEAKER_DIARIZATION_DIR
 
-app.config['UPLOAD_PATH'] = upload_dir
+app.config['UPLOAD_PATH'] = config.UPLOAD_DIR
 
 @app.route('/gen_srt_from_youtube_url',methods=['POST'])
 @cross_origin()
@@ -84,7 +84,7 @@ def upload(filename):
             file_ext = os.path.splitext(filename)[1]
             uploaded_file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
         return_path = str(os.path.join(app.config['UPLOAD_PATH'], filename))
-        
+
         return json.dumps({'uploaded_filepath': return_path })
 
     except:

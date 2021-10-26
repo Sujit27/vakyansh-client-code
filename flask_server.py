@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 import os
 import main
 import config
+import glob
 
 app = Flask(__name__)
 CORS(app)
@@ -15,6 +16,8 @@ subtitle_dir = config.SUBTITLE_DIR
 speaker_diarization_dir = config.SPEAKER_DIARIZATION_DIR
 
 app.config['UPLOAD_PATH'] = config.UPLOAD_DIR
+if not os.path.isdir(app.config['UPLOAD_PATH']):
+    os.mkdir(app.config['UPLOAD_PATH'])
 
 @app.route('/gen_srt_from_youtube_url',methods=['POST'])
 @cross_origin()
@@ -34,7 +37,7 @@ def gen_srt_from_youtube_url():
 @cross_origin()
 def gen_srt_from_file():
     body = request.get_json()
-    input = body["file"]
+    input ='uploads/temp123.wav' #'./uploads/*.wav'# body["file"]
     language = body["language"]
     result = main.flaskresponse(input,language,input_format='file',output_format='srt')
     if(result):
@@ -48,7 +51,7 @@ def gen_srt_from_file():
 @cross_origin()
 def gen_speaker_diarization_from_file():
     body = request.get_json()
-    input = body["file"]
+    input = "uploads/temp123.wav" # './uploads/*.wav' #body["file"]
     language = body["language"]
     result = main.flaskresponse(input,language,input_format='file',output_format='diarization')
     if(result):
@@ -76,16 +79,19 @@ def get_speaker_diarization(filename):
 
 @app.route('/upload',methods=['POST'])
 @cross_origin()
-def upload(filename):
+def upload():
     try:
+        if not os.path.isdir(app.config['UPLOAD_PATH']):
+            os.mkdir(app.config['UPLOAD_PATH'])
         uploaded_file = request.files['file']
         filename = secure_filename(uploaded_file.filename)
         if filename != '':
             file_ext = os.path.splitext(filename)[1]
             uploaded_file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
         return_path = str(os.path.join(app.config['UPLOAD_PATH'], filename))
-
-        return json.dumps({'uploaded_filepath': return_path })
+        new_path = str(os.path.join(app.config['UPLOAD_PATH'], "temp123.wav"))
+        os.rename(return_path, new_path)
+        return json.dumps({'uploaded_filepath': new_path })
 
     except:
         return json.dumps({'upload':'false'})

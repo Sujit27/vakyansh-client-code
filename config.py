@@ -4,6 +4,7 @@ USER="aswin.pradeep@tarento.com"
 PASS="@Password1"
 FETCH_MODEL = 'https://users-auth.anuvaad.org/nmt-inference/v2/fetch-models'
 TRANSLATE_SEN = 'https://users-auth.anuvaad.org/aai4b-nmt-inference/v1/translate'
+SERVER_IP = '35.81.103.117:50051'
 
 SUBTITLE_DIR = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/subtitles/"
 SPEAKER_DIARIZATION_DIR = "/home/ec2-user/vakyansh-client-realtime-v2/vakyansh-client-code/speaker_diarization/"

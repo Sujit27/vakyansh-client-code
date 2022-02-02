@@ -134,4 +134,4 @@ def get_transcription():
         return json.dumps({'response':'failed'})
 
 if __name__ == '__main__':
-    app.run(host = "0.0.0.0", port=5001, debug=True)
+    app.run(host = config.HOST_IP, port=config.HOST_PORT, debug=True)

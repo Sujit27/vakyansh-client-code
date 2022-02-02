@@ -8,6 +8,7 @@ import config
 import glob
 import uuid
 import base64
+import pysrt
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +21,18 @@ speaker_diarization_dir = config.SPEAKER_DIARIZATION_DIR
 app.config['UPLOAD_PATH'] = config.UPLOAD_DIR
 if not os.path.isdir(app.config['UPLOAD_PATH']):
     os.mkdir(app.config['UPLOAD_PATH'])
+
+def get_transcription_from_srt_text(srt_text):
+    with open('temp.srt', 'w') as f:
+            f.write(srt_text)
+    subs = pysrt.open('temp.srt')
+    transcription = ''
+    for sub in subs:
+        text = sub.text
+        if text != '[ Voice is not clearly audible ]':
+            transcription = transcription + ' ' + text
+
+    return transcription
 
 @app.route('/gen_srt_from_youtube_url',methods=['POST'])
 @cross_origin()
@@ -115,7 +128,7 @@ def get_transcription():
 
     result = main.flaskresponse(input,language,input_format='file',output_format='srt')
     if(result):
-        tmp = json.dumps(result["srt"])
+        tmp = json.dumps({"transcript":get_transcription_from_srt_text(result["srt"])})
         return tmp
     else:
         return json.dumps({'response':'failed'})

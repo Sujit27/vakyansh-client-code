@@ -7,6 +7,7 @@ import main
 import config
 import glob
 import uuid
+import base64
 
 app = Flask(__name__)
 CORS(app)
@@ -99,6 +100,25 @@ def upload():
 
     except:
         return json.dumps({'upload':'false'})
+
+@app.route('/get_transcription',methods=['POST'])
+@cross_origin()
+def get_transcription():
+    body = request.get_json()
+    language = body["source"]
+    base64_string = body["audioContent"]
+
+    decoded_string = base64.b64decode(base64_string)
+    wav_file = open("temp.wav", "wb")
+    wav_file.write(decoded_string)
+    input = "temp.wav"
+
+    result = main.flaskresponse(input,language,input_format='file',output_format='srt')
+    if(result):
+        tmp = json.dumps(result["srt"])
+        return tmp
+    else:
+        return json.dumps({'response':'failed'})
 
 if __name__ == '__main__':
     app.run(host = "0.0.0.0", port=5001, debug=True)

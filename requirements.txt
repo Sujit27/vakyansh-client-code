@@ -29,3 +29,4 @@ tqdm
 spectralcluster==0.1.0
 git+https://github.com/Sujit27/speaker-identification
 denoiser
+pybase64

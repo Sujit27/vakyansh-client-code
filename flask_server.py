@@ -9,6 +9,7 @@ import glob
 import uuid
 import base64
 import pysrt
+from utilities import media_conversion
 
 app = Flask(__name__)
 CORS(app)
@@ -121,10 +122,13 @@ def get_transcription():
     language = body["source"]
     base64_string = body["audioContent"]
 
+    if not os.path.exists('temp_converted'):
+        os.makedirs('temp_converted')
     decoded_string = base64.b64decode(base64_string)
     wav_file = open("temp.wav", "wb")
     wav_file.write(decoded_string)
-    input = "temp.wav"
+    media_conversion("temp.wav", 'temp_converted')
+    input = os.path.join('temp_converted','input_audio.wav')
 
     result = main.flaskresponse(input,language,input_format='file',output_format='srt')
     if(result):

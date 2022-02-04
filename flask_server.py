@@ -118,31 +118,34 @@ def upload():
 @app.route('/get_transcription',methods=['POST'])
 @cross_origin()
 def get_transcription():
-    body = request.get_json()
-    language = body["source"]
-    base64_string = body["audioContent"]
-
-    if not os.path.exists('temp_converted'):
-        os.makedirs('temp_converted')
-    
-    decoded_string = base64.b64decode(base64_string)
-    wav_file = open("temp.wav", "wb")
-    wav_file.write(decoded_string)
-
-    input = os.path.join('temp_converted','input_audio.wav')
     try:
-        os.remove(input)
-    except OSError:
-        pass
-    media_conversion("temp.wav", 'temp_converted')
-    
+        body = request.get_json()
+        language = body["source"]
+        base64_string = body["audioContent"]
 
-    result = main.flaskresponse(input,language,input_format='file',output_format='srt')
-    if(result):
-        tmp = json.dumps({"transcript":get_transcription_from_srt_text(result["srt"])})
-        return tmp
-    else:
+        if not os.path.exists('temp_converted'):
+            os.makedirs('temp_converted')
+        
+        decoded_string = base64.b64decode(base64_string)
+        wav_file = open("temp.wav", "wb")
+        wav_file.write(decoded_string)
+
+        input = os.path.join('temp_converted','input_audio.wav')
+        try:
+            os.remove(input)
+        except OSError:
+            pass
+        media_conversion("temp.wav", 'temp_converted')
+        
+        result = main.flaskresponse(input,language,input_format='file',output_format='srt')
+        
+        return json.dumps({"transcript":get_transcription_from_srt_text(result["srt"])})
+    except FileNotFoundError:
+        print("Error: input base64 string is not available")
         return json.dumps({'response':'failed'})
+    except:
+        return json.dumps({'response':'failed'})
+
 
 if __name__ == '__main__':
     app.run(host = config.HOST_IP, port=config.HOST_PORT, debug=True)

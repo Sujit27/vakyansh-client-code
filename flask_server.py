@@ -10,6 +10,7 @@ import uuid
 import base64
 import pysrt
 from utilities import media_conversion
+import shutil
 
 app = Flask(__name__)
 CORS(app)
@@ -123,23 +124,29 @@ def get_transcription():
         language = body["source"]
         base64_string = body["audioContent"]
 
-        if not os.path.exists('temp_converted'):
-            os.makedirs('temp_converted')
+        uniqueID=str(uuid.uuid1())
+        temp_wav=uniqueID+'.wav'
+
+        if not os.path.exists(uniqueID):
+            os.makedirs(uniqueID)
         
         decoded_string = base64.b64decode(base64_string)
-        wav_file = open("temp.wav", "wb")
+        wav_file = open(temp_wav, "wb")
         wav_file.write(decoded_string)
 
-        input = os.path.join('temp_converted','input_audio.wav')
+        input = os.path.join(uniqueID,'input_audio.wav')
         try:
             os.remove(input)
         except OSError:
             pass
-        media_conversion("temp.wav", 'temp_converted')
+        media_conversion(temp_wav,uniqueID)
         
         result = main.flaskresponse(input,language,input_format='file',output_format='srt')
-        
+        shutil.rmtree(uniqueID)
+        os.remove(temp_wav)
         return json.dumps({"transcript":get_transcription_from_srt_text(result["srt"])})
+
+
     except FileNotFoundError:
         print("Error: input base64 string is not available")
         return json.dumps({'response':'failed'})

@@ -11,6 +11,7 @@ import base64
 import pysrt
 from utilities import media_conversion
 import shutil
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -120,6 +121,7 @@ def upload():
 @cross_origin()
 def get_transcription():
     try:
+        start_time=datetime.now()
         body = request.get_json()
         language = body["source"]
         base64_string = body["audioContent"]
@@ -144,7 +146,9 @@ def get_transcription():
         result = main.flaskresponse(input,language,input_format='file',output_format='srt')
         shutil.rmtree(uniqueID)
         os.remove(temp_wav)
-        return json.dumps({"transcript":get_transcription_from_srt_text(result["srt"])})
+        transcription_result=get_transcription_from_srt_text(result["srt"])
+        total_time=datetime.now()-start_time
+        return json.dumps({"transcript":transcription_result,"prediction_time" :str(total_time)})
 
 
     except FileNotFoundError:
